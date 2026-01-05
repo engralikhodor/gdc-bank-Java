@@ -54,7 +54,8 @@ public class UserServiceImpl implements UserService
             throw new GovernmentIdExistsException(AccountUtils.GOVERNMENT_ID_ALREADY_EXISTS_MESSAGE);
         }
 
-        if (userRepository.existsByAlternativePhoneNumber(userRequestDTO.getAlternativePhoneNumber()))
+        // alternativePhoneNumber can be null
+        if (userRequestDTO.getAlternativePhoneNumber() != null && userRepository.existsByAlternativePhoneNumber(userRequestDTO.getAlternativePhoneNumber()))
         {
             throw new AlternativePhoneNumberExistsException(AccountUtils.ALTERNATIVE_NUMBER_ALREADY_EXISTS_MESSAGE);
         }
@@ -143,6 +144,34 @@ public class UserServiceImpl implements UserService
         }
         User foundUser = userRepository.findByAccountNumber(enquiryRequestDTO.getAccountNumber());
         return foundUser.getFirstName() + " " + foundUser.getLastName() + " " + foundUser.getOtherName();
+    }
+
+    // Helper (handle actual balance and transaction log)
+    private void executeBalanceUpdate(
+            String accountNumber,
+            BigDecimal amount,
+            TransactionTypeOptions type)
+    {
+        User user = userRepository.findByAccountNumber(accountNumber);
+
+        if (type == TransactionTypeOptions.CREDIT)
+        {
+            user.setAccountBalance(user.getAccountBalance().add(amount));
+        }
+        else
+        {
+            user.setAccountBalance(user.getAccountBalance().subtract(amount));
+        }
+
+        userRepository.save(user);
+
+        // Save history without triggering an email
+        transactionService.saveTransaction(TransactionDTO.builder()
+                .amount(amount)
+                .accountNumber(accountNumber)
+                .transactionType(type)
+                .status("COMPLETED")
+                .build());
     }
 
     @Transactional // non-negotiable in finTech. If the system crashes mid-save, it rolls back
@@ -302,48 +331,87 @@ public class UserServiceImpl implements UserService
                 .build();
     }
 
-    @Transactional // non-negotiable in finTech. If the system crashes mid-save, it rolls back
+    @Override
+    @Transactional
     public ResponseDTO transferAmount(TransferRequestDTO transferRequestDTO)
     {
-        String fromAccountNumber = transferRequestDTO.getFromAccountNumber();
-        String toAccountNumber = transferRequestDTO.getToAccountNumber();
-        BigDecimal amountToTransfer = transferRequestDTO.getAmountToTransfer();
+        // Check if both accounts exist
+        User fromUser = userRepository.findByAccountNumber(transferRequestDTO.getFromAccountNumber());
+        User toUser = userRepository.findByAccountNumber(transferRequestDTO.getToAccountNumber());
 
-        // 1Transfer() =  1Debit(from) + 1Credit(to)
-
-        ResponseDTO debitResponse = debitAccount(CreditDebitRequestDTO.builder()
-                .accountNumber(fromAccountNumber)
-                .amount(amountToTransfer)
-                .build());
-
-        if (debitResponse.responseCode().equals(AccountUtils.INSUFFICIENT_BALANCE_CODE))
+        if (fromUser == null || toUser == null)
         {
             return ResponseDTO.builder()
-                    .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
-                    .responseMessage(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE)
-                    .accountInfo(null)
+                    .responseCode(AccountUtils.ACCOUNT_NOT_FOUND_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE)
                     .build();
         }
 
-        if (debitResponse.responseCode().equals(AccountUtils.EXCEEDS_TRANSFER_LIMIT_CODE))
+        BigDecimal amount = transferRequestDTO.getAmountToTransfer();
+
+        // Stop user from sending amount > transfer limit
+        if (amount.compareTo(AccountUtils.DEFAULT_TRANSFER_LIMIT) > 0)
         {
             return ResponseDTO.builder()
                     .responseCode(AccountUtils.EXCEEDS_TRANSFER_LIMIT_CODE)
                     .responseMessage(AccountUtils.EXCEEDS_TRANSFER_LIMIT_MESSAGE)
-                    .accountInfo(null)
                     .build();
         }
 
-        creditAccount(CreditDebitRequestDTO.builder()
-                .accountNumber(toAccountNumber)
-                .amount(amountToTransfer)
+        // Stop user from sending amount > current balance
+        if (fromUser.getAccountBalance().compareTo(amount) < 0)
+        {
+            return ResponseDTO.builder()
+                    .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
+                    .responseMessage(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE)
+                    .build();
+        }
+
+        // 1 transfer action = 1 debit (from) + 1 credit (to)
+        executeBalanceUpdate(fromUser.getAccountNumber(), amount, TransactionTypeOptions.DEBIT);
+        executeBalanceUpdate(toUser.getAccountNumber(), amount, TransactionTypeOptions.CREDIT);
+
+        // Email the sender (from)
+        String senderHtml = """
+                    <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee;">
+                        <h2 style="color: #c0392b;">Debit Alert</h2>
+                        <p>Dear %s,</p>
+                        <p>You have successfully transferred <strong>%s %s</strong> to <strong>%s</strong> (%s).</p>
+                        <p>Your new balance is: <strong>%s</strong></p>
+                    </div>
+                """.formatted(fromUser.getFirstName(), fromUser.getBaseCurrency(), amount,
+                toUser.getFirstName() + " " + toUser.getLastName(), toUser.getAccountNumber(),
+                fromUser.getAccountBalance().subtract(amount));
+
+        emailService.sendEmailNotification(EmailDetailsDTO.builder()
+                .recipient(fromUser.getEmail())
+                .subject("Transfer Sent Confirmation")
+                .messageBody(senderHtml)
                 .build());
 
-        log.info("Transfer done");
+        // Email the receiver (to)
+        String receiverHtml = """
+                    <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee;">
+                        <h2 style="color: #27ae60;">Credit Alert</h2>
+                        <p>Dear %s,</p>
+                        <p>Your account has been credited with <strong>%s %s</strong> sent by <strong>%s</strong>.</p>
+                        <p>Your new balance is: <strong>%s</strong></p>
+                    </div>
+                """.formatted(toUser.getFirstName(), toUser.getBaseCurrency(), amount,
+                fromUser.getFirstName() + " " + fromUser.getLastName(),
+                toUser.getAccountBalance().add(amount));
+
+        emailService.sendEmailNotification(EmailDetailsDTO.builder()
+                .recipient(toUser.getEmail())
+                .subject("Money Received!")
+                .messageBody(receiverHtml)
+                .build());
+
+        log.info("Transfer successful: {} moved from {} to {}", amount, fromUser.getAccountNumber(), toUser.getAccountNumber());
+
         return ResponseDTO.builder()
                 .responseCode(AccountUtils.TRANSFER_SUCCESS_CODE)
                 .responseMessage(AccountUtils.TRANSFER_SUCCESS_MESSAGE)
-                .accountInfo(null)
                 .build();
     }
 }
