@@ -332,7 +332,7 @@ public class UserServiceImpl implements UserService
     }
 
     @Override
-    @Transactional
+    @Transactional // non-negotiable in finTech. If the system crashes mid-save, it rolls back
     public ResponseDTO transferAmount(TransferRequestDTO transferRequestDTO)
     {
         // Check if both accounts exist

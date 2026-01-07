@@ -56,4 +56,3 @@ ai:
     timeout-ms: 5000
     max-tokens: 300
     requests-per-minute: 30
-

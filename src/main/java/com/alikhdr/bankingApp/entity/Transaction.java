@@ -42,4 +42,7 @@ public class Transaction
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    @Version
+    private Long version; // Optimistic Locking: protect the State of the record (Best Practice)
 }

@@ -91,4 +91,7 @@ public class User
 
     @UpdateTimestamp
     private LocalDateTime modifiedAt;
+
+    @Version
+    private Long version; // Optimistic Locking: protect the Balance (Critical)
 }

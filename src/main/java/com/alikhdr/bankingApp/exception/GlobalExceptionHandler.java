@@ -3,6 +3,7 @@ package com.alikhdr.bankingApp.exception;
 import com.alikhdr.bankingApp.dto.ResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -71,5 +72,16 @@ public class GlobalExceptionHandler
                 .responseMessage(errorMessage)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    // Optimistic Locking
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ResponseDTO> handleOptimisticLockingFailure(ObjectOptimisticLockingFailureException ex)
+    {
+        ResponseDTO response = ResponseDTO.builder()
+                .responseCode("409")
+                .responseMessage("This record was updated by another process. Please refresh and try again.")
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 }
