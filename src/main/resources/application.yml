@@ -56,3 +56,14 @@ ai:
     timeout-ms: 5000
     max-tokens: 300
     requests-per-minute: 30
+
+# Circuit Breaker, to make OpenAI service calls fault-tolerant (fail-safe)
+resilience4j:
+  circuitbreaker:
+    instances:
+      openaiService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s

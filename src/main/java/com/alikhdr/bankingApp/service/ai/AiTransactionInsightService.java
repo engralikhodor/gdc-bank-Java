@@ -5,7 +5,9 @@ import com.alikhdr.bankingApp.entity.Transaction;
 import com.alikhdr.bankingApp.repository.TransactionRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -15,10 +17,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AiTransactionInsightService
 {
-
     private final WebClient openAiWebClient;
     private final TransactionRepository transactionRepository;
 
@@ -28,13 +30,11 @@ public class AiTransactionInsightService
     @Value("${ai.openai.max-tokens}")
     private int maxTokens;
 
-    /**
-     * Generate AI insights for all transactions of a given account.
-     * Returns a clean DTO with the AI response and the prompt.
-     */
+    // generate AI insights for all transactions of a given account: return DTO with AI response & prompt
+    // name = openaiService => same in app.yml
+    @CircuitBreaker(name = "openaiService", fallbackMethod = "fallbackGenerateInsights")
     public AiResponseDTO generateInsightsForAccount(String accountNumber)
     {
-
         // Fetch transactions from DB
         List<Transaction> transactions = transactionRepository.findByAccountNumber(accountNumber);
 
@@ -44,10 +44,8 @@ public class AiTransactionInsightService
             return new AiResponseDTO(model, "assistant", "No transactions found for this account.", promptEmpty);
         }
 
-        // Build safe prompt
         String prompt = buildPrompt(transactions);
 
-        // Call OpenAI
         String rawResponse = openAiWebClient.post()
                 .uri("/chat/completions")
                 .bodyValue(Map.of(
@@ -62,7 +60,7 @@ public class AiTransactionInsightService
                 .bodyToMono(String.class)
                 .block();
 
-        // Parse only the fields we want
+        // parse specific fields
         try
         {
             ObjectMapper mapper = new ObjectMapper();
@@ -79,9 +77,20 @@ public class AiTransactionInsightService
         }
     }
 
-    /**
-     * Build a masked, human-readable summary of transactions for AI.
-     */
+    // FALLBACK METHOD, called when: OpenAI returns an error (408, 500...)  - or - if circuit is "OPEN" (already failed too many times)
+    public AiResponseDTO fallbackGenerateInsights(String accountNumber, Throwable t)
+    {
+        log.error("AI Insights failed for account {}. Reason: {}", accountNumber, t.getMessage());
+
+        return new AiResponseDTO(
+                model,
+                "assistant",
+                "Your transactions are safe, but our AI advisor is currently unreachable.",
+                "Notice: Financial insights are temporarily unavailable due to external service latency. Please try again in a few minutes."
+        );
+    }
+
+    //  build a masked, human-readable summary of transactions for AI
     private String buildPrompt(List<Transaction> transactions)
     {
         String summary = transactions.stream()
@@ -96,9 +105,7 @@ public class AiTransactionInsightService
                 summary;
     }
 
-    /**
-     * Mask account number for safety
-     */
+    // mask account number for safety
     private String maskAccount(String accountNumber)
     {
         if (accountNumber == null || accountNumber.length() < 4)
