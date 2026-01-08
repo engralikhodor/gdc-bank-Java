@@ -60,7 +60,7 @@ public class UserServiceImpl implements UserService
             throw new AlternativePhoneNumberExistsException(AccountUtils.ALTERNATIVE_NUMBER_ALREADY_EXISTS_MESSAGE);
         }
 
-        User newUser = userMapper.mapRequestToEntity(userRequestDTO); //MapStruct
+        User newUser = userMapper.toEntity(userRequestDTO); //MapStruct
         newUser.setAccountNumber(AccountUtils.generateAccountNumber());
         newUser.setAccountBalance(BigDecimal.ZERO);
         newUser.setDailyTransferLimit(AccountUtils.DEFAULT_TRANSFER_LIMIT);// Default bank policy
@@ -150,7 +150,8 @@ public class UserServiceImpl implements UserService
     private void executeBalanceUpdate(
             String accountNumber,
             BigDecimal amount,
-            TransactionTypeOptions type)
+            TransactionTypeOptions type,
+            String remarks)
     {
         User user = userRepository.findByAccountNumber(accountNumber);
 
@@ -171,6 +172,7 @@ public class UserServiceImpl implements UserService
                 .accountNumber(accountNumber)
                 .transactionType(type)
                 .status("COMPLETED")
+                .remarks(remarks)
                 .build());
     }
 
@@ -348,6 +350,7 @@ public class UserServiceImpl implements UserService
         }
 
         BigDecimal amount = transferRequestDTO.getAmountToTransfer();
+        String remarks = transferRequestDTO.getRemarks();
 
         // Stop user from sending amount > transfer limit
         if (amount.compareTo(AccountUtils.DEFAULT_TRANSFER_LIMIT) > 0)
@@ -368,8 +371,8 @@ public class UserServiceImpl implements UserService
         }
 
         // 1 transfer action = 1 debit (from) + 1 credit (to)
-        executeBalanceUpdate(fromUser.getAccountNumber(), amount, TransactionTypeOptions.DEBIT);
-        executeBalanceUpdate(toUser.getAccountNumber(), amount, TransactionTypeOptions.CREDIT);
+        executeBalanceUpdate(fromUser.getAccountNumber(), amount, TransactionTypeOptions.DEBIT, remarks);
+        executeBalanceUpdate(toUser.getAccountNumber(), amount, TransactionTypeOptions.CREDIT, remarks);
 
         // Email the sender (from)
         String senderHtml = """

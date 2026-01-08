@@ -8,9 +8,8 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface UserMapper
 {
-    /**
-     * Maps UserRequest to User Entity
-     */
+    //  maps UserRequest to User Entity
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "accountNumber", ignore = true)
     @Mapping(target = "accountBalance", ignore = true)
@@ -22,6 +21,5 @@ public interface UserMapper
 
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "modifiedAt", ignore = true)
-    //    @Mapping(target = "gender", ignore = true)
-    User mapRequestToEntity(UserRequestDTO userRequestDTO);
+    User toEntity(UserRequestDTO userRequestDTO);// DTO => Entity
 }
