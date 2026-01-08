@@ -1,80 +1,46 @@
-# Smart Banking Platform (Java 17 & Spring Boot 3.3)
+Smart Banking Platform
+Java 17 | Spring Boot 3.3 | JPA Criteria API
 
-A high-concurrency digital banking backend engineered with automated AI-driven financial insights. This project
-demonstrates enterprise-level development standards, focusing on data integrity, fault tolerance, and context-aware LLM
-integration.
+The Smart Banking Platform is a backend service designed to handle core financial operations with a focus on
+transactional integrity and high-performance data retrieval. The project is structured to maintain a strict separation
+between the API contract and the persistence layer, ensuring scalability and ease of maintenance.
 
----
+Key Architectural Implementations
+Type-Safe Dynamic Querying
+Rather than using static repository methods, this project implements a dynamic search engine using the JPA Criteria API
+and Specification<T> patterns. This allows for complex filtering across multiple fields—such as transaction amounts,
+account statuses, and user demographics—without writing custom SQL or JPQL for every combination. To prevent runtime
+errors, Hibernate MetaModels are utilized to ensure that field references are checked at compile-time.
 
-## 🚀 Core Features & Senior Implementations
+Data Decoupling and Mapping
+To ensure the internal database structure is never exposed directly to the consumer, the project employs a multi-DTO
+strategy managed by MapStruct:
 
-### 1. AI-Augmented Financial Insights
+Request Contracts: Dedicated DTOs for creating and updating resources, ensuring only relevant fields are processed.
 
-* **LLM Integration:** Utilizes **OpenAI's Chat Completion API** via a reactive `WebClient` to analyze user transaction
-  history.
-* **Contextual Awareness:** Dynamically builds structured prompts by processing real-time transaction data (type,
-  amount, status) to provide personalized financial advisories.
-* **Safety & Privacy:** Implements account masking logic to ensure PII (Personally Identifiable Information) is
-  protected during external API calls.
+Response Contracts: Controlled data exposure through records that include system-generated fields like UUIDs and
+timestamps while hiding internal versioning or sensitive metadata.
 
-### 2. Robust Fault Tolerance & Resilience
+Compile-Time Mapping: Use of annotation processors to generate optimized mapping code, reducing overhead and removing
+manual boilerplate.
 
-* **Reliable API Communication:** Configured dedicated `WebClient` beans with tailored timeouts (`timeout-ms`) to
-  prevent downstream latency from impacting core banking threads.
-* **Global Exception Handling:** Implements a centralized `@RestControllerAdvice` to manage transactional failures,
-  validation errors, and business logic exceptions (e.g., `EmailAlreadyExistsException`), ensuring a unified API
-  response structure.
+Transactional Reliability
+Given the nature of banking data, all state-changing operations (Transfers, Credits, Debits) are strictly managed within
+@Transactional boundaries. This ensures Atomicity, meaning if any part of a multi-step process (like a transfer between
+two accounts) fails, the entire operation rolls back to prevent data corruption.
 
-### 3. High-Concurrency & Data Integrity
+AI-Powered Data Analysis
+The platform includes an integration with OpenAI's Chat Completion API via Spring’s reactive WebClient. This service
+processes transaction histories to generate structured financial health summaries, utilizing PII (Personally
+Identifiable Information) masking to ensure data privacy during external processing.
 
-* **Transactional Safety:** (Planned) Implementing **Optimistic Locking** to manage concurrent account updates without
-  data corruption.
-* **Database Management:** Leverages **Spring Data JPA** with Hibernate for optimized persistence and schema management.
+Technical Stack
+Language/Framework: Java 17, Spring Boot 3.3.
 
----
+ORM: Spring Data JPA with Hibernate 6.
 
-## 🏗️ Technical Architecture
+Annotation Processors: MapStruct (Object Mapping), Hibernate MetaModel (Type-safe Queries), Lombok (Boilerplate).
 
-* **Backend:** Java 17, Spring Boot 3.3, Spring Data JPA, Spring Validation.
-* **AI Engine:** OpenAI API (GPT-4o).
-* **Database:** MySQL 8.0.
-* **Communication:** Reactive Spring WebClient.
-* **Security:** Masking logic and Environment-based configuration (`application.yml`).
+Communication: Reactive WebClient for external API consumption.
 
----
-
-## 🛠️ Installation & Setup
-
-### Prerequisites
-
-* JDK 17 or higher
-* Maven 3.6+
-* MySQL 8.0
-* OpenAI API Key
-
-### Configuration
-
-1. Clone the repository.
-2. Set your environment variables in `application.yml` or your system environment:
-   ```yaml
-   ai:
-     openai:
-       api-key: ${OPENAI_API_KEY}
-       base-url: "[https://api.openai.com/v1](https://api.openai.com/v1)"
-       model: "gpt-4o"
-   ```
-3. Run the application:
-   ```bash
-   mvn spring-boot:run
-   ```
-
----
-
-## 📈 API Documentation
-
-### AI Insights Endpoint
-
-* **URL:** `/api/ai/transactions/generate`
-* **Method:** `POST`
-* **Payload:** `{ "accountNumber": "1234567890" }`
-* **Description:** Fetches transaction history and returns an AI-generated summary of financial health.
+Validation: Jakarta Bean Validation for strict input enforcement.
