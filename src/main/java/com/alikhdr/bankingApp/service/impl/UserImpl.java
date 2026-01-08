@@ -26,9 +26,10 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor // Generates constructor for final fields
+@RequiredArgsConstructor
 public class UserImpl implements UserService
 {
+
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final EmailService emailService;
@@ -38,134 +39,14 @@ public class UserImpl implements UserService
     private String bankName;
 
     @Override
-    public ApiResponse createAccount(UserRequest userRequest)
-    {
-        if (userRepository.existsByEmail(userRequest.getEmail()))
-        {
-            throw new EmailAlreadyExistsException(AccountUtils.EMAIL_ALREADY_EXISTS_MESSAGE);
-        }
-
-        if (userRepository.existsByPhoneNumber(userRequest.getPhoneNumber()))
-        {
-            throw new PhoneNumberAlreadyExistsException(AccountUtils.PHONE_NUMBER_ALREADY_EXISTS_MESSAGE);
-        }
-
-        if (userRepository.existsByGovernmentId(userRequest.getGovernmentId()))
-        {
-            throw new GovernmentIdExistsException(AccountUtils.GOVERNMENT_ID_ALREADY_EXISTS_MESSAGE);
-        }
-
-        // alternativePhoneNumber can be null
-        if (userRequest.getAlternativePhoneNumber() != null && userRepository.existsByAlternativePhoneNumber(userRequest.getAlternativePhoneNumber()))
-        {
-            throw new AlternativePhoneNumberExistsException(AccountUtils.ALTERNATIVE_NUMBER_ALREADY_EXISTS_MESSAGE);
-        }
-
-        User newUser = userMapper.requestToEntity(userRequest); //MapStruct
-        newUser.setAccountNumber(AccountUtils.generateAccountNumber());
-        newUser.setAccountBalance(BigDecimal.ZERO);
-        newUser.setDailyTransferLimit(AccountUtils.DEFAULT_TRANSFER_LIMIT);// Default bank policy
-        newUser.setBaseCurrency(CurrencyOptions.USD);
-        newUser.setStatus(AccountStatusOptions.ACTIVE);
-
-        User savedUser = userRepository.save(newUser);
-
-        String htmlBody = """
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
-                        <h2 style="color: #2c3e50;">Welcome to %s!</h2>
-                        <p>Dear %s,</p>
-                        <p>Your bank account has been successfully created. Here are your account details:</p>
-                        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                            <p><strong>Account Name:</strong> %s %s</p>
-                            <p><strong>Account Number:</strong> <span style="color: #2980b9; font-size: 1.2em;">%s</span></p>
-                            <p><strong>Status:</strong> ACTIVE</p>
-                        </div>
-                        <p>Please keep this information secure. You can now log in and start managing your finances.</p>
-                        <hr style="border: 0; border-top: 1px solid #eee;" />
-                        <footer style="font-size: 0.8em; color: #888;">
-                            This is an automated message from %s Security Team.
-                        </footer>
-                    </div>
-                """.formatted(
-                bankName,
-                savedUser.getFirstName(),
-                savedUser.getFirstName(),
-                savedUser.getLastName(),
-                savedUser.getAccountNumber(),
-                bankName);
-
-        EmailDetailsDTO emailDetailsDTO = EmailDetailsDTO.builder()
-                .recipient(savedUser.getEmail())
-                .subject("Account Created Successfully")
-                .messageBody(htmlBody)
-                .build();
-
-        emailService.sendEmailNotification(emailDetailsDTO);// async
-
-        UserResponse dto =
-                UserResponse.builder()
-                        .accountNumber(savedUser.getAccountNumber())
-                        .accountBalance(savedUser.getAccountBalance())
-                        .accountName(
-                                String.join(" ",
-                                        savedUser.getFirstName(),
-                                        savedUser.getLastName(),
-                                        savedUser.getOtherName()
-                                ).trim()
-                        )
-                        .phoneNumber(savedUser.getPhoneNumber())
-                        .build();
-
-        return ApiResponse.builder()
-                .responseCode(AccountUtils.ACCOUNT_CREATION_SUCCESS_CODE)
-                .responseMessage(AccountUtils.ACCOUNT_CREATION_SUCCESS_MESSAGE)
-                .data(List.of(dto))
-                .build();
-
-    }
-
-    public ApiResponse balanceEnquiry(EnquiryRequest enquiryRequest)
-    {
-        boolean isAccountExist = userRepository.existsByAccountNumber(enquiryRequest.getAccountNumber());
-        if (!isAccountExist)
-        {
-            return ApiResponse.builder()
-                    .responseCode(AccountUtils.ACCOUNT_NOT_FOUND_CODE)
-                    .responseMessage(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE)
-                    .data(null)
-                    .build();
-        }
-
-        User foundUser = userRepository.findByAccountNumber(enquiryRequest.getAccountNumber());
-
-        UserResponse dto = UserResponse.builder()
-                .accountBalance(foundUser.getAccountBalance())
-                .accountNumber(foundUser.getAccountNumber())
-                .accountName(
-                        String.join(" ",
-                                foundUser.getFirstName(),
-                                foundUser.getLastName(),
-                                foundUser.getOtherName()
-                        ).trim()
-                )
-                .phoneNumber(foundUser.getPhoneNumber())
-                .build();
-
-        return ApiResponse.builder()
-                .responseCode(AccountUtils.ACCOUNT_FOUND_CODE)
-                .responseMessage(AccountUtils.ACCOUNT_FOUND_MESSAGE)
-                .data(List.of(dto))
-                .build();
-    }
-
     public String nameEnquiry(EnquiryRequest enquiryRequest)
     {
-        boolean isAccountExist = userRepository.existsByAccountNumber(enquiryRequest.getAccountNumber());
-        if (!isAccountExist)
+        User foundUser = userRepository.findByAccountNumber(enquiryRequest.getAccountNumber());
+        if (foundUser == null)
         {
             return AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE;
         }
-        User foundUser = userRepository.findByAccountNumber(enquiryRequest.getAccountNumber());
+
         return String.join(" ",
                 foundUser.getFirstName(),
                 foundUser.getLastName(),
@@ -173,7 +54,141 @@ public class UserImpl implements UserService
         ).trim();
     }
 
-    // Helper (handle actual balance and transaction log)
+    @Override
+    @Transactional // Non-negotiable for data integrity in financial operations
+    public ApiResponse<UserResponse> debitAccount(CreditDebitRequest creditDebitRequest)
+    {
+        User userToDebit = userRepository.findByAccountNumber(creditDebitRequest.getAccountNumber());
+
+        // 1. Check if account exists
+        if (userToDebit == null)
+        {
+            return ApiResponse.<UserResponse>builder()
+                    .responseCode(AccountUtils.ACCOUNT_NOT_FOUND_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE)
+                    .build();
+        }
+
+        BigDecimal amount = creditDebitRequest.getAmount();
+
+        // 2. Validate against transfer limits
+        if (amount.compareTo(AccountUtils.DEFAULT_TRANSFER_LIMIT) > 0)
+        {
+            return ApiResponse.<UserResponse>builder()
+                    .responseCode(AccountUtils.EXCEEDS_TRANSFER_LIMIT_CODE)
+                    .responseMessage(AccountUtils.EXCEEDS_TRANSFER_LIMIT_MESSAGE)
+                    .build();
+        }
+
+        // 3. Check for sufficient funds
+        if (userToDebit.getAccountBalance().compareTo(amount) < 0)
+        {
+            return ApiResponse.<UserResponse>builder()
+                    .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
+                    .responseMessage(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE)
+                    .build();
+        }
+
+        // 4. Update balance and save
+        userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(amount));
+        userRepository.save(userToDebit);
+
+        // 5. Log the transaction asynchronously
+        transactionService.saveTransaction(TransactionRequest.builder()
+                .amount(amount)
+                .accountNumber(userToDebit.getAccountNumber())
+                .transactionType(TransactionTypeOptions.DEBIT)
+                .status("COMPLETED")
+                .remarks("Manual Debit")
+                .build());
+
+        // 6. Send notification (Async)
+        sendTransactionEmail(userToDebit, amount, "Debited");
+
+        return ApiResponse.<UserResponse>builder()
+                .responseCode(AccountUtils.ACCOUNT_DEBITED_SUCCESS_CODE)
+                .responseMessage(AccountUtils.ACCOUNT_DEBITED_SUCCESS_MESSAGE)
+                .data(userMapper.entityToResponse(userToDebit))
+                .build();
+    }
+
+    private void sendTransactionEmail(User user, BigDecimal amount, String transactionType)
+    {
+        String htmlBody = """
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
+                        <h2 style="color: #2c3e50;">Transaction Alert: %s</h2>
+                        <p>Dear %s,</p>
+                        <p>Your account has been <strong>%s</strong> with the amount: <strong>%s %s</strong>.</p>
+                        <p>Your new available balance is: <strong>%s</strong></p>
+                        <hr style="border: 0; border-top: 1px solid #eee;" />
+                        <footer style="font-size: 0.8em; color: #888;">
+                            This is an automated security notification from %s.
+                        </footer>
+                    </div>
+                """.formatted(
+                transactionType,
+                user.getFirstName(),
+                transactionType.toLowerCase(),
+                user.getBaseCurrency(),
+                amount,
+                user.getAccountBalance(),
+                bankName);
+
+        EmailDetailsDTO emailDetailsDTO = EmailDetailsDTO.builder()
+                .recipient(user.getEmail())
+                .subject("Account " + transactionType)
+                .messageBody(htmlBody)
+                .build();
+
+        emailService.sendEmailNotification(emailDetailsDTO);
+    }
+
+    @Override
+    @Transactional // Atomic operation: either both accounts update or none do
+    public ApiResponse<UserResponse> transferAmount(TransferRequest transferRequest)
+    {
+        User fromUser = userRepository.findByAccountNumber(transferRequest.getFromAccountNumber());
+        User toUser = userRepository.findByAccountNumber(transferRequest.getToAccountNumber());
+
+        // 1. Validate accounts
+        if (fromUser == null || toUser == null)
+        {
+            return ApiResponse.<UserResponse>builder()
+                    .responseCode(AccountUtils.ACCOUNT_NOT_FOUND_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE)
+                    .build();
+        }
+
+        BigDecimal amount = transferRequest.getAmountToTransfer();
+
+        // 2. Validate balance and limits
+        if (amount.compareTo(AccountUtils.DEFAULT_TRANSFER_LIMIT) > 0)
+        {
+            return ApiResponse.<UserResponse>builder()
+                    .responseCode(AccountUtils.EXCEEDS_TRANSFER_LIMIT_CODE)
+                    .build();
+        }
+
+        if (fromUser.getAccountBalance().compareTo(amount) < 0)
+        {
+            return ApiResponse.<UserResponse>builder()
+                    .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
+                    .build();
+        }
+
+        // 3. Execute updates via helper to ensure transaction logs are created
+        executeBalanceUpdate(fromUser.getAccountNumber(), amount, TransactionTypeOptions.DEBIT, transferRequest.getRemarks());
+        executeBalanceUpdate(toUser.getAccountNumber(), amount, TransactionTypeOptions.CREDIT, transferRequest.getRemarks());
+
+        log.info("Transfer successful: {} moved from {} to {}", amount, fromUser.getAccountNumber(), toUser.getAccountNumber());
+
+        return ApiResponse.<UserResponse>builder()
+                .responseCode(AccountUtils.TRANSFER_SUCCESS_CODE)
+                .responseMessage(AccountUtils.TRANSFER_SUCCESS_MESSAGE)
+                .data(userMapper.entityToResponse(fromUser)) // Return sender's updated status
+                .build();
+    }
+
     private void executeBalanceUpdate(
             String accountNumber,
             BigDecimal amount,
@@ -203,286 +218,102 @@ public class UserImpl implements UserService
                 .build());
     }
 
-    @Transactional // non-negotiable in finTech. If the system crashes mid-save, it rolls back
-    public ApiResponse creditAccount(CreditDebitRequest creditDebitRequest)
+    @Override
+    @Transactional
+    public ApiResponse<UserResponse> createAccount(UserRequest userRequest)
     {
-        boolean isAccountExist = userRepository.existsByAccountNumber(creditDebitRequest.getAccountNumber());
-        if (!isAccountExist)
+        if (userRepository.existsByEmail(userRequest.getEmail()))
         {
-            return ApiResponse.builder()
+            throw new EmailAlreadyExistsException(AccountUtils.EMAIL_ALREADY_EXISTS_MESSAGE);
+        }
+
+        if (userRepository.existsByPhoneNumber(userRequest.getEmail()))
+        {
+            throw new PhoneNumberAlreadyExistsException(AccountUtils.PHONE_NUMBER_ALREADY_EXISTS_MESSAGE);
+        }
+
+        if (
+                userRequest.getAlternativePhoneNumber() != null &&
+                        userRepository.existsByAlternativePhoneNumber((userRequest.getAlternativePhoneNumber())))
+        {
+            throw new AlternativePhoneNumberExistsException(AccountUtils.ALTERNATIVE_NUMBER_ALREADY_EXISTS_MESSAGE);
+        }
+
+        if (userRepository.existsByAlternativePhoneNumber((userRequest.getGovernmentId())))
+        {
+            throw new GovernmentIdExistsException(AccountUtils.GOVERNMENT_ID_ALREADY_EXISTS_MESSAGE);
+        }
+
+        User newUser = userMapper.requestToEntity(userRequest);
+        newUser.setAccountNumber(AccountUtils.generateAccountNumber());
+        newUser.setAccountBalance(BigDecimal.ZERO);
+        newUser.setDailyTransferLimit(AccountUtils.DEFAULT_TRANSFER_LIMIT);
+        newUser.setBaseCurrency(CurrencyOptions.USD);
+        newUser.setStatus(AccountStatusOptions.ACTIVE);
+
+        User savedUser = userRepository.save(newUser);
+
+        // Email logic...
+
+        UserResponse data = userMapper.entityToResponse(savedUser);
+
+        return ApiResponse.<UserResponse>builder()
+                .responseCode(AccountUtils.ACCOUNT_CREATION_SUCCESS_CODE)
+                .responseMessage(AccountUtils.ACCOUNT_CREATION_SUCCESS_MESSAGE)
+                .data(data)
+                .build();
+    }
+
+    @Override
+    public ApiResponse<UserResponse> balanceEnquiry(EnquiryRequest enquiryRequest)
+    {
+        User foundUser = userRepository.findByAccountNumber(enquiryRequest.getAccountNumber());
+        if (foundUser == null)
+        {
+            return ApiResponse.<UserResponse>builder()
                     .responseCode(AccountUtils.ACCOUNT_NOT_FOUND_CODE)
                     .responseMessage(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE)
-                    .data(null)
                     .build();
         }
-        User userToCredit = userRepository.findByAccountNumber(creditDebitRequest.getAccountNumber());
-        BigDecimal amountToBeCredited = creditDebitRequest.getAmount();
-        if (amountToBeCredited.compareTo(AccountUtils.DEFAULT_TRANSFER_LIMIT) > 0)
+
+        return ApiResponse.<UserResponse>builder()
+                .responseCode(AccountUtils.ACCOUNT_FOUND_CODE)
+                .responseMessage(AccountUtils.ACCOUNT_FOUND_MESSAGE)
+                .data(userMapper.entityToResponse(foundUser))
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<UserResponse> creditAccount(CreditDebitRequest request)
+    {
+        User user = userRepository.findByAccountNumber(request.getAccountNumber());
+        if (user == null)
         {
-            return ApiResponse.builder()
-                    .responseCode(AccountUtils.EXCEEDS_TRANSFER_LIMIT_CODE)
-                    .responseMessage(AccountUtils.EXCEEDS_TRANSFER_LIMIT_MESSAGE)
-                    .data(null)
+            return ApiResponse.<UserResponse>builder()
+                    .responseCode(AccountUtils.ACCOUNT_NOT_FOUND_CODE)
                     .build();
         }
 
-        BigDecimal newBalance = userToCredit.getAccountBalance().add(creditDebitRequest.getAmount());
+        // Logic to update balance and save transaction...
+        user.setAccountBalance(user.getAccountBalance().add(request.getAmount()));
+        userRepository.save(user);
 
-        userToCredit.setAccountBalance(newBalance);
-        // Save in user table
-        userRepository.save(userToCredit);
-
-        // Save in transaction table
-        transactionService.saveTransaction(TransactionRequest.builder()
-                .amount(amountToBeCredited)
-                .accountNumber(userToCredit.getAccountNumber())
-                .transactionType(TransactionTypeOptions.CREDIT)
-                .build());
-
-        String htmlBody = """
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
-                        <h2 style="color: #2c3e50;">Welcome to %s!</h2>
-                        <p>Dear %s,</p>
-                        <p>Your bank account has been credited with the amount: %s and your new balance is: %s</p>
-                        <p>Please keep this information secure. You can now log in and start managing your finances.</p>
-                        <hr style="border: 0; border-top: 1px solid #eee;" />
-                        <footer style="font-size: 0.8em; color: #888;">
-                            This is an automated message from %s Security Team.
-                        </footer>
-                    </div>
-                """.formatted(
-                bankName,
-                userToCredit.getFirstName(),
-                amountToBeCredited,
-                newBalance,
-                bankName);
-
-        EmailDetailsDTO emailDetailsDTO = EmailDetailsDTO.builder()
-                .recipient(userToCredit.getEmail())
-                .subject("Account Credited ")
-                .messageBody(htmlBody)
-                .build();
-
-        emailService.sendEmailNotification(emailDetailsDTO);// async
-
-        UserResponse dto = UserResponse.builder()
-                .accountName(
-                        String.join(" ",
-                                userToCredit.getFirstName(),
-                                userToCredit.getLastName(),
-                                userToCredit.getOtherName()
-                        ).trim()
-                )
-                .accountNumber(userToCredit.getAccountNumber())
-                .accountBalance(newBalance)
-                .phoneNumber(userToCredit.getPhoneNumber())
-                .build();
-
-        return ApiResponse.builder()
+        return ApiResponse.<UserResponse>builder()
                 .responseCode(AccountUtils.ACCOUNT_CREDITED_SUCCESS_CODE)
                 .responseMessage(AccountUtils.ACCOUNT_CREDITED_SUCCESS_MESSAGE)
-                .data(List.of(dto))
-                .build();
-
-    }
-
-    @Transactional // non-negotiable in finTech. If the system crashes mid-save, it rolls back
-    public ApiResponse debitAccount(CreditDebitRequest creditDebitRequest)
-    {
-        boolean isAccountExist = userRepository.existsByAccountNumber(creditDebitRequest.getAccountNumber());
-        if (!isAccountExist)
-        {
-            return ApiResponse.builder()
-                    .responseCode(AccountUtils.ACCOUNT_NOT_FOUND_CODE)
-                    .responseMessage(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE)
-                    .data(null)
-                    .build();
-
-        }
-
-        User userToDebit = userRepository.findByAccountNumber(creditDebitRequest.getAccountNumber());
-        BigDecimal amountToBeDebited = creditDebitRequest.getAmount();
-        if (amountToBeDebited.compareTo(AccountUtils.DEFAULT_TRANSFER_LIMIT) > 0)
-        {
-            return ApiResponse.builder()
-                    .responseCode(AccountUtils.EXCEEDS_TRANSFER_LIMIT_CODE)
-                    .responseMessage(AccountUtils.EXCEEDS_TRANSFER_LIMIT_MESSAGE)
-                    .data(null)
-                    .build();
-        }
-
-        BigDecimal currentBalance = userToDebit.getAccountBalance();
-        if (currentBalance.compareTo(amountToBeDebited) < 0)
-        {
-            return ApiResponse.builder()
-                    .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
-                    .responseMessage(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE)
-                    .data(null)
-                    .build();
-        }
-
-        BigDecimal newBalance = userToDebit.getAccountBalance().subtract(creditDebitRequest.getAmount());
-        userToDebit.setAccountBalance(newBalance);
-        // Save in user table
-        userRepository.save(userToDebit);
-
-        // Save in transaction table
-        transactionService.saveTransaction(TransactionRequest.builder()
-                .amount(amountToBeDebited)
-                .accountNumber(userToDebit.getAccountNumber())
-                .transactionType(TransactionTypeOptions.DEBIT)
-                .build());
-
-        String htmlBody = """
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
-                        <h2 style="color: #2c3e50;">Welcome to %s!</h2>
-                        <p>Dear %s,</p>
-                        <p>Your bank account has been debited with the amount: %s and your new balance is: %s</p>
-                        <p>Please keep this information secure. You can now log in and start managing your finances.</p>
-                        <hr style="border: 0; border-top: 1px solid #eee;" />
-                        <footer style="font-size: 0.8em; color: #888;">
-                            This is an automated message from %s Security Team.
-                        </footer>
-                    </div>
-                """.formatted(
-                bankName,
-                userToDebit.getFirstName(),
-                amountToBeDebited,
-                newBalance,
-                bankName);
-
-        EmailDetailsDTO emailDetailsDTO = EmailDetailsDTO.builder()
-                .recipient(userToDebit.getEmail())
-                .subject("Account Debited")
-                .messageBody(htmlBody)
-                .build();
-
-        emailService.sendEmailNotification(emailDetailsDTO);// async
-
-        UserResponse dto = UserResponse.builder()
-                .accountName(
-                        String.join(" ",
-                                userToDebit.getFirstName(),
-                                userToDebit.getLastName(),
-                                userToDebit.getOtherName()
-                        ).trim()
-                )
-                .accountNumber(userToDebit.getAccountNumber())
-                .accountBalance(newBalance)
-                .phoneNumber(userToDebit.getPhoneNumber())
-                .build();
-
-        return ApiResponse.builder()
-                .responseCode(AccountUtils.ACCOUNT_DEBITED_SUCCESS_CODE)
-                .responseMessage(AccountUtils.ACCOUNT_DEBITED_SUCCESS_MESSAGE)
-                .data(List.of(dto))
+                .data(userMapper.entityToResponse(user))
                 .build();
     }
+
 
     @Override
-    @Transactional // non-negotiable in finTech. If the system crashes mid-save, it rolls back
-    public ApiResponse transferAmount(TransferRequest transferRequest)
-    {
-        // Check if both accounts exist
-        User fromUser = userRepository.findByAccountNumber(transferRequest.getFromAccountNumber());
-        User toUser = userRepository.findByAccountNumber(transferRequest.getToAccountNumber());
-
-        if (fromUser == null || toUser == null)
-        {
-            return ApiResponse.builder()
-                    .responseCode(AccountUtils.ACCOUNT_NOT_FOUND_CODE)
-                    .responseMessage(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE)
-                    .build();
-        }
-
-        BigDecimal amount = transferRequest.getAmountToTransfer();
-        String remarks = transferRequest.getRemarks();
-
-        // Stop user from sending amount > transfer limit
-        if (amount.compareTo(AccountUtils.DEFAULT_TRANSFER_LIMIT) > 0)
-        {
-            return ApiResponse.builder()
-                    .responseCode(AccountUtils.EXCEEDS_TRANSFER_LIMIT_CODE)
-                    .responseMessage(AccountUtils.EXCEEDS_TRANSFER_LIMIT_MESSAGE)
-                    .build();
-        }
-
-        // Stop user from sending amount > current balance
-        if (fromUser.getAccountBalance().compareTo(amount) < 0)
-        {
-            return ApiResponse.builder()
-                    .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
-                    .responseMessage(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE)
-                    .build();
-        }
-
-        // 1 transfer action = 1 debit (from) + 1 credit (to)
-        executeBalanceUpdate(fromUser.getAccountNumber(), amount, TransactionTypeOptions.DEBIT, remarks);
-        executeBalanceUpdate(toUser.getAccountNumber(), amount, TransactionTypeOptions.CREDIT, remarks);
-
-        // Email the sender (from)
-        String senderHtml = """
-                    <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee;">
-                        <h2 style="color: #c0392b;">Debit Alert</h2>
-                        <p>Dear %s,</p>
-                        <p>You have successfully transferred <strong>%s %s</strong> to <strong>%s</strong>.</p>
-                        <p>Your new balance is: <strong>%s</strong></p>
-                    </div>
-                """.formatted(
-                fromUser.getFirstName(),
-                fromUser.getBaseCurrency(),
-                amount,
-                String.join(" ",
-                        toUser.getFirstName(),
-                        toUser.getLastName(),
-                        toUser.getOtherName()
-                ).trim(),
-                fromUser.getAccountBalance().subtract(amount));
-
-        emailService.sendEmailNotification(EmailDetailsDTO.builder()
-                .recipient(fromUser.getEmail())
-                .subject("Transfer Sent Confirmation")
-                .messageBody(senderHtml)
-                .build());
-
-        // Email the receiver (to)
-        String receiverHtml = """
-                    <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee;">
-                        <h2 style="color: #27ae60;">Credit Alert</h2>
-                        <p>Dear %s,</p>
-                        <p>Your account has been credited with <strong>%s %s</strong> sent by <strong>%s</strong>.</p>
-                        <p>Your new balance is: <strong>%s</strong></p>
-                    </div>
-                """.formatted(toUser.getFirstName(), toUser.getBaseCurrency(), amount,
-                String.join(" ",
-                        fromUser.getFirstName(),
-                        fromUser.getLastName(),
-                        fromUser.getOtherName()
-                ).trim(),
-                toUser.getAccountBalance().add(amount));
-
-        emailService.sendEmailNotification(EmailDetailsDTO.builder()
-                .recipient(toUser.getEmail())
-                .subject("Money Received!")
-                .messageBody(receiverHtml)
-                .build());
-
-        log.info("Transfer successful: {} moved from {} to {}", amount, fromUser.getAccountNumber(), toUser.getAccountNumber());
-
-        return ApiResponse.builder()
-                .responseCode(AccountUtils.TRANSFER_SUCCESS_CODE)
-                .responseMessage(AccountUtils.TRANSFER_SUCCESS_MESSAGE)
-                .build();
-    }
-
-    @Override
-    public List<UserResponse>
-    searchUsers(UserSearchCriteria userSearchCriteria)
+    public List<UserResponse> searchUsers(UserSearchCriteria criteria)
     {
         Specification<User> spec = Specification
-                .where(UserSpecs.isEquals(User_.EMAIL, userSearchCriteria.getEmail()))
-                .and(UserSpecs.isEquals(User_.ACCOUNT_NUMBER, userSearchCriteria.getAccountNumber()))
-                .and(UserSpecs.isAbove(userSearchCriteria.getMinAge()));
+                .where(UserSpecs.isEquals(User_.EMAIL, criteria.getEmail()))
+                .and(UserSpecs.isEquals(User_.ACCOUNT_NUMBER, criteria.getAccountNumber()))
+                .and(UserSpecs.isAbove(criteria.getMinAge()));
 
         return userRepository.findAll(spec)
                 .stream()

@@ -8,15 +8,16 @@ public interface UserService
 {
     String nameEnquiry(EnquiryRequest enquiryRequest);
 
-    ApiResponse createAccount(UserRequest userRequest);
+    ApiResponse<UserResponse> createAccount(UserRequest userRequest);
 
-    ApiResponse balanceEnquiry(EnquiryRequest enquiryRequest);
+    ApiResponse<UserResponse> balanceEnquiry(EnquiryRequest enquiryRequest);
 
-    ApiResponse creditAccount(CreditDebitRequest creditDebitRequest);
+    ApiResponse<UserResponse> creditAccount(CreditDebitRequest creditDebitRequest);
 
-    ApiResponse debitAccount(CreditDebitRequest creditDebitRequest);
+    ApiResponse<UserResponse> debitAccount(CreditDebitRequest creditDebitRequest);
 
-    ApiResponse transferAmount(TransferRequest transferRequest);
+    // Changed to UserResponse to provide the updated sender's balance
+    ApiResponse<UserResponse> transferAmount(TransferRequest transferRequest);
 
     List<UserResponse> searchUsers(UserSearchCriteria userSearchCriteria);
 }
