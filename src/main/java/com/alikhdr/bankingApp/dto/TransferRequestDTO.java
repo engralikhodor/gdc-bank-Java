@@ -22,6 +22,8 @@ public class TransferRequestDTO
     @NotBlank(message = "The recipient's account number can't be empty.")
     private String toAccountNumber;
 
+    private String remarks;
+
     @NotNull(message = "The amount can't be empty.")
     @Positive(message = "The amount must be greater than zero.")
     private BigDecimal amountToTransfer;

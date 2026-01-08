@@ -35,6 +35,9 @@ public class Transaction
     @Column(nullable = false, length = 10)
     private String accountNumber;
 
+    @Column(length = 100) // nullable
+    private String remarks;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TransactionStatusOptions status;
