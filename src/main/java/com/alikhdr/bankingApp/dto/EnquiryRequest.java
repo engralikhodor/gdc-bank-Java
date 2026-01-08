@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class EnquiryRequestDTO
+public class EnquiryRequest
 {
     @NotBlank(message = "The account number can't be empty.")
     private String accountNumber;

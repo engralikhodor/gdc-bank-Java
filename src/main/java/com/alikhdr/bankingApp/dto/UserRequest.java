@@ -14,7 +14,8 @@ import java.time.LocalDate;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserRequestDTO
+// (Request): for Create
+public class UserRequest
 {
     @NotBlank(message = "First name is mandatory")
     private String firstName;
@@ -39,7 +40,7 @@ public class UserRequestDTO
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^\\d{8,15}$", message = "Phone number must be between 8 and 15 digits")
     private String phoneNumber;
-    
+
     @Pattern(regexp = "^\\d{8,15}$", message = "Phone number must be between 8 and 15 digits")
     private String alternativePhoneNumber;
 

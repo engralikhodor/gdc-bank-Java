@@ -1,6 +1,6 @@
 package com.alikhdr.bankingApp.controller;
 
-import com.alikhdr.bankingApp.dto.AiResponseDTO;
+import com.alikhdr.bankingApp.dto.AiResponse;
 import com.alikhdr.bankingApp.service.ai.AiTransactionInsightService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +21,10 @@ public class AiController
      * Generate AI insights for all transactions of a given account number.
      */
     @PostMapping("/generate")
-    public ResponseEntity<AiResponseDTO> generateInsights(@RequestBody AiAccountRequest request)
+    public ResponseEntity<AiResponse> generateInsights(@RequestBody AiAccountRequest request)
     {
 
-        AiResponseDTO aiResponse = aiService.generateInsightsForAccount(request.getAccountNumber());
+        AiResponse aiResponse = aiService.generateInsightsForAccount(request.getAccountNumber());
 
         return ResponseEntity.ok(aiResponse);
     }

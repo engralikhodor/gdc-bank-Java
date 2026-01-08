@@ -13,9 +13,9 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Entity
 @Table(
         name = "user", indexes = {
@@ -36,7 +36,7 @@ public class User
     @Column(nullable = false)
     private String lastName;
 
-    private String otherName;// nullable
+    private String otherName;// nullable (optional)
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -45,7 +45,7 @@ public class User
     @Column(nullable = false)
     private String nationality;
 
-    private String address;// nullable
+    private String address;// nullable (optional)
 
     @Column(unique = true, nullable = false, length = 10)
     private String accountNumber;
@@ -93,5 +93,5 @@ public class User
     private LocalDateTime modifiedAt;
 
     @Version
-    private Long version; // Optimistic Locking: protect the Balance (Critical)
+    private Long version; // For optimistic locking
 }

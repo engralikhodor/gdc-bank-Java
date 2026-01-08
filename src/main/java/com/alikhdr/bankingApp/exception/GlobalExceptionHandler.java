@@ -1,6 +1,6 @@
 package com.alikhdr.bankingApp.exception;
 
-import com.alikhdr.bankingApp.dto.ResponseDTO;
+import com.alikhdr.bankingApp.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -15,10 +15,10 @@ public class GlobalExceptionHandler
 {
     // Email already exists
     @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<ResponseDTO> handleEmailExists(EmailAlreadyExistsException ex)
+    public ResponseEntity<ApiResponse> handleEmailExists(EmailAlreadyExistsException ex)
     {
-        ResponseDTO response = ResponseDTO.builder()
-                .responseCode("409")
+        ApiResponse response = ApiResponse.builder()
+                .responseCode(HttpStatus.CONFLICT.toString())
                 .responseMessage(ex.getMessage())
                 .build();
 
@@ -27,10 +27,10 @@ public class GlobalExceptionHandler
 
     // Phone number already exists
     @ExceptionHandler(PhoneNumberAlreadyExistsException.class)
-    public ResponseEntity<ResponseDTO> handlePhoneNumberExists(PhoneNumberAlreadyExistsException ex)
+    public ResponseEntity<ApiResponse> handlePhoneNumberExists(PhoneNumberAlreadyExistsException ex)
     {
-        ResponseDTO response = ResponseDTO.builder()
-                .responseCode("409")
+        ApiResponse response = ApiResponse.builder()
+                .responseCode(HttpStatus.CONFLICT.toString())
                 .responseMessage(ex.getMessage())
                 .build();
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
@@ -38,10 +38,10 @@ public class GlobalExceptionHandler
 
     // Additional phone number exists
     @ExceptionHandler(AlternativePhoneNumberExistsException.class)
-    public ResponseEntity<ResponseDTO> handleAdditionalPhoneNumberExists(AlternativePhoneNumberExistsException ex)
+    public ResponseEntity<ApiResponse> handleAdditionalPhoneNumberExists(AlternativePhoneNumberExistsException ex)
     {
-        ResponseDTO response = ResponseDTO.builder()
-                .responseCode("409")
+        ApiResponse response = ApiResponse.builder()
+                .responseCode(HttpStatus.CONFLICT.toString())
                 .responseMessage(ex.getMessage())
                 .build();
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
@@ -49,10 +49,10 @@ public class GlobalExceptionHandler
 
     // Government ID already exists
     @ExceptionHandler(GovernmentIdExistsException.class)
-    public ResponseEntity<ResponseDTO> handleGovernmentIdExists(GovernmentIdExistsException ex)
+    public ResponseEntity<ApiResponse> handleGovernmentIdExists(GovernmentIdExistsException ex)
     {
-        ResponseDTO response = ResponseDTO.builder()
-                .responseCode("409")
+        ApiResponse response = ApiResponse.builder()
+                .responseCode(HttpStatus.CONFLICT.toString())
                 .responseMessage(ex.getMessage())
                 .build();
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
@@ -60,15 +60,15 @@ public class GlobalExceptionHandler
 
     // Input validations
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ResponseDTO> handleValidationErrors(MethodArgumentNotValidException ex)
+    public ResponseEntity<ApiResponse> handleValidationErrors(MethodArgumentNotValidException ex)
     {
         String errorMessage = ex.getBindingResult().getFieldErrors()
                 .stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
 
-        ResponseDTO response = ResponseDTO.builder()
-                .responseCode("400")
+        ApiResponse response = ApiResponse.builder()
+                .responseCode(HttpStatus.BAD_REQUEST.toString())
                 .responseMessage(errorMessage)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -76,10 +76,10 @@ public class GlobalExceptionHandler
 
     // Optimistic Locking
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
-    public ResponseEntity<ResponseDTO> handleOptimisticLockingFailure(ObjectOptimisticLockingFailureException ex)
+    public ResponseEntity<ApiResponse> handleOptimisticLockingFailure(ObjectOptimisticLockingFailureException ex)
     {
-        ResponseDTO response = ResponseDTO.builder()
-                .responseCode("409")
+        ApiResponse response = ApiResponse.builder()
+                .responseCode(HttpStatus.CONFLICT.toString())
                 .responseMessage("This record was updated by another process. Please refresh and try again.")
                 .build();
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);

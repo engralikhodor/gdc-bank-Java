@@ -1,6 +1,6 @@
 package com.alikhdr.bankingApp.component;
 
-import com.alikhdr.bankingApp.dto.TransactionDTO;
+import com.alikhdr.bankingApp.dto.TransactionRequest;
 import com.alikhdr.bankingApp.entity.*;
 import com.alikhdr.bankingApp.repository.UserRepository;
 import com.alikhdr.bankingApp.service.TransactionService;
@@ -82,7 +82,7 @@ public class DataSeedRunner implements CommandLineRunner
             TransactionTypeOptions type = random.nextBoolean() ?
                     TransactionTypeOptions.CREDIT : TransactionTypeOptions.DEBIT;
 
-            transactionService.saveTransaction(TransactionDTO.builder()
+            transactionService.saveTransaction(TransactionRequest.builder()
                     .accountNumber(charbel.getAccountNumber())
                     .amount(amount)
                     .transactionType(type)

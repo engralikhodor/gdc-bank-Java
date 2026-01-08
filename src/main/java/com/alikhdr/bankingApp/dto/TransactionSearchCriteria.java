@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 // (Filter): Used for Searching. It contains optional fields like minAmount and maxAmount / not for creation
 @Data
-public class TransactionSearchDTO
+public class TransactionSearchCriteria
 {
     private String type;
     private String status;

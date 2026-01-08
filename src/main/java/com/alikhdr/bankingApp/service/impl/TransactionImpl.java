@@ -1,8 +1,8 @@
 package com.alikhdr.bankingApp.service.impl;
 
-import com.alikhdr.bankingApp.dto.TransactionDTO;
-import com.alikhdr.bankingApp.dto.TransactionResponseDTO;
-import com.alikhdr.bankingApp.dto.TransactionSearchDTO;
+import com.alikhdr.bankingApp.dto.TransactionRequest;
+import com.alikhdr.bankingApp.dto.TransactionResponse;
+import com.alikhdr.bankingApp.dto.TransactionSearchCriteria;
 import com.alikhdr.bankingApp.entity.Transaction;
 import com.alikhdr.bankingApp.entity.TransactionStatusOptions;
 import com.alikhdr.bankingApp.entity.Transaction_;
@@ -26,20 +26,20 @@ public class TransactionImpl implements TransactionService
     private final TransactionMapper transactionMapper;
 
     @Transactional // non-negotiable in finTech. If the system crashes mid-save, it rolls back
-    public void saveTransaction(TransactionDTO transactionDTO)
+    public void saveTransaction(TransactionRequest transactionRequest)
     {
         transactionRepository.save(Transaction.builder()
-                .amount(transactionDTO.amount())
-                .transactionType(transactionDTO.transactionType())
-                .accountNumber(transactionDTO.accountNumber())
+                .amount(transactionRequest.amount())
+                .transactionType(transactionRequest.transactionType())
+                .accountNumber(transactionRequest.accountNumber())
                 .status(TransactionStatusOptions.PENDING)
-                .remarks(transactionDTO.remarks())
+                .remarks(transactionRequest.remarks())
                 .build());
     }
 
     @Override
-    public List<TransactionResponseDTO>
-    searchTransactions(TransactionSearchDTO searchDTO)
+    public List<TransactionResponse>
+    searchTransactions(TransactionSearchCriteria searchDTO)
     {
         Specification<Transaction> spec = Specification
                 .where(TransactionSpecs.isEquals(Transaction_.TRANSACTION_TYPE, searchDTO.getType()))
@@ -49,7 +49,7 @@ public class TransactionImpl implements TransactionService
 
         return transactionRepository.findAll(spec)
                 .stream()
-                .map(transactionMapper::entityToDto)
+                .map(transactionMapper::entityToResponse)
                 .collect(Collectors.toList());
     }
 }

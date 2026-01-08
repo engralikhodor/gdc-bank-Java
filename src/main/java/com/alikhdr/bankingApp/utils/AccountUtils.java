@@ -32,10 +32,19 @@ public class AccountUtils
     public static final String EXCEEDS_TRANSFER_LIMIT_CODE = "008";
     public static final String EXCEEDS_TRANSFER_LIMIT_MESSAGE = "Exceeds transfer limit!";
     public static final String TRANSFER_SUCCESS_CODE = "009";
-    public static final String TRANSFER_SUCCESS_MESSAGE = "Amount trasnferred successfully!";
+    public static final String TRANSFER_SUCCESS_MESSAGE = "Amount transferred successfully!";
+    public static final String USER_FOUND_SUCCESS_CODE = "010";
+    public static final String USER_FOUND_SUCCESS_MESSAGE = "User found successfully!";
+    public static final String TRANSACTION_FOUND_SUCCESS_CODE = "011";
+    public static final String TRANSACTION_FOUND_SUCCESS_MESSAGE = "Transaction found successfully!";
+    public static final String USER_NOT_FOUND_SUCCESS_CODE = "012";
+    public static final String USER_NOT_FOUND_SUCCESS_MESSAGE = "User not found!";
+    public static final String TRANSACTION_NOT_FOUND_SUCCESS_CODE = "013";
+    public static final String TRANSACTION_NOT_FOUND_SUCCESS_MESSAGE = "Transaction not found!";
+
 
     public static final BigDecimal DEFAULT_TRANSFER_LIMIT = new BigDecimal("5000.00");
- 
+
     /**
      * Generates a 10-digit account number: Current Year (4 digits) + Random (6 digits)
      */

@@ -2,17 +2,21 @@ package com.alikhdr.bankingApp.service;
 
 import com.alikhdr.bankingApp.dto.*;
 
+import java.util.List;
+
 public interface UserService
 {
-    String nameEnquiry(EnquiryRequestDTO enquiryRequestDTO);
+    String nameEnquiry(EnquiryRequest enquiryRequest);
 
-    ResponseDTO createAccount(UserRequestDTO userRequestDTO);
+    ApiResponse createAccount(UserRequest userRequest);
 
-    ResponseDTO balanceEnquiry(EnquiryRequestDTO enquiryRequestDTO);
+    ApiResponse balanceEnquiry(EnquiryRequest enquiryRequest);
 
-    ResponseDTO creditAccount(CreditDebitRequestDTO creditDebitRequestDTO);
+    ApiResponse creditAccount(CreditDebitRequest creditDebitRequest);
 
-    ResponseDTO debitAccount(CreditDebitRequestDTO creditDebitRequestDTO);
+    ApiResponse debitAccount(CreditDebitRequest creditDebitRequest);
 
-    ResponseDTO transferAmount(TransferRequestDTO transferRequestDTO);
+    ApiResponse transferAmount(TransferRequest transferRequest);
+
+    List<UserResponse> searchUsers(UserSearchCriteria userSearchCriteria);
 }

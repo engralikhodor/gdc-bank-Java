@@ -1,16 +1,20 @@
 package com.alikhdr.bankingApp.mapper;
 
-import com.alikhdr.bankingApp.dto.TransactionDTO;
-import com.alikhdr.bankingApp.dto.TransactionResponseDTO;
+import com.alikhdr.bankingApp.dto.TransactionRequest;
+import com.alikhdr.bankingApp.dto.TransactionResponse;
 import com.alikhdr.bankingApp.entity.Transaction;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface TransactionMapper
 {
-    // Entity => DTO (used by search results)
-    TransactionResponseDTO entityToDto(Transaction transaction);
 
-    // DTO => Entity
-    Transaction dtoToEntity(TransactionDTO dto);
+    // Entity -> Response (Read)
+    TransactionResponse entityToResponse(Transaction transaction);
+
+    // Request -> Entity (Write)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    Transaction requestToEntity(TransactionRequest dto);
 }

@@ -1,6 +1,6 @@
 package com.alikhdr.bankingApp.service.ai;
 
-import com.alikhdr.bankingApp.dto.AiResponseDTO;
+import com.alikhdr.bankingApp.dto.AiResponse;
 import com.alikhdr.bankingApp.entity.Transaction;
 import com.alikhdr.bankingApp.repository.TransactionRepository;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,7 +33,7 @@ public class AiTransactionInsightService
     // generate AI insights for all transactions of a given account: return DTO with AI response & prompt
     // name = openaiService => same in app.yml
     @CircuitBreaker(name = "openaiService", fallbackMethod = "fallbackGenerateInsights")
-    public AiResponseDTO generateInsightsForAccount(String accountNumber)
+    public AiResponse generateInsightsForAccount(String accountNumber)
     {
         // Fetch transactions from DB
         List<Transaction> transactions = transactionRepository.findByAccountNumber(accountNumber);
@@ -41,7 +41,7 @@ public class AiTransactionInsightService
         if (transactions.isEmpty())
         {
             String promptEmpty = "No transactions found for account " + maskAccount(accountNumber);
-            return new AiResponseDTO(model, "assistant", "No transactions found for this account.", promptEmpty);
+            return new AiResponse(model, "assistant", "No transactions found for this account.", promptEmpty);
         }
 
         String prompt = buildPrompt(transactions);
@@ -51,8 +51,16 @@ public class AiTransactionInsightService
                 .bodyValue(Map.of(
                         "model", model,
                         "messages", new Object[]{
-                                Map.of("role", "system", "content", "You are a banking assistant. Explain transactions clearly and concisely."),
-                                Map.of("role", "user", "content", prompt)
+                                Map.of(
+                                        "role",
+                                        "system",
+                                        "content",
+                                        "You are a banking assistant. Explain transactions clearly and concisely."),
+                                Map.of(
+                                        "role",
+                                        "user",
+                                        "content",
+                                        prompt)
                         },
                         "max_tokens", maxTokens
                 ))
@@ -69,24 +77,24 @@ public class AiTransactionInsightService
             String role = choice.path("message").path("role").asText();
             String content = choice.path("message").path("content").asText();
 
-            return new AiResponseDTO(root.path("model").asText(), role, prompt, content);
+            return new AiResponse(root.path("model").asText(), role, content, prompt);
         }
         catch (Exception e)
         {
-            return new AiResponseDTO(model, "assistant", "Failed to parse AI response.", prompt);
+            return new AiResponse(model, "assistant", "Failed to parse AI response.", prompt);
         }
     }
 
     // FALLBACK METHOD, called when: OpenAI returns an error (408, 500...)  - or - if circuit is "OPEN" (already failed too many times)
-    public AiResponseDTO fallbackGenerateInsights(String accountNumber, Throwable t)
+    public AiResponse fallbackGenerateInsights(String accountNumber, Throwable t)
     {
         log.error("AI Insights failed for account {}. Reason: {}", accountNumber, t.getMessage());
 
-        return new AiResponseDTO(
+        return new AiResponse(
                 model,
                 "assistant",
-                "Your transactions are safe, but our AI advisor is currently unreachable.",
-                "Notice: Financial insights are temporarily unavailable due to external service latency. Please try again in a few minutes."
+                "Notice: Financial insights are temporarily unavailable due to external service latency. Please try again in a few minutes.",
+                "Your transactions are safe, but our AI advisor is currently unreachable."
         );
     }
 

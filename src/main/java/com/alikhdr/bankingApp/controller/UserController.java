@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/user/")
 @RequiredArgsConstructor
@@ -18,10 +20,10 @@ public class UserController
 
     // Create a new user
     @PostMapping
-    public ResponseEntity<ResponseDTO>
-    createAccount(@Valid @RequestBody UserRequestDTO userRequestDTO)
+    public ResponseEntity<ApiResponse<List<UserResponse>>>
+    createAccount(@Valid @RequestBody UserRequest userRequest)
     {
-        ResponseDTO response = userService.createAccount(userRequestDTO);
+        ApiResponse<List<UserResponse>> response = userService.createAccount(userRequest);
         if (response.responseCode().equals(AccountUtils.ACCOUNT_EXISTS_CODE))
         {
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -31,10 +33,10 @@ public class UserController
 
     // Get balance of user
     @GetMapping("balanceEnquiry")
-    public ResponseEntity<ResponseDTO>
-    balanceEnquiry(@RequestBody EnquiryRequestDTO enquiryRequestDTO)
+    public ResponseEntity<ApiResponse<List<UserResponse>>>
+    balanceEnquiry(@RequestBody EnquiryRequest enquiryRequest)
     {
-        ResponseDTO response = userService.balanceEnquiry(enquiryRequestDTO);
+        ApiResponse<List<UserResponse>> response = userService.balanceEnquiry(enquiryRequest);
         if (response.responseCode().equals(AccountUtils.ACCOUNT_NOT_FOUND_CODE))
         {
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -44,27 +46,27 @@ public class UserController
 
     // Get name of user
     @GetMapping("nameEnquiry")
-    public ResponseEntity<ResponseDTO>
-    nameEnquiry(@RequestBody EnquiryRequestDTO enquiryRequestDTO)
+    public ResponseEntity<ApiResponse>
+    nameEnquiry(@RequestBody EnquiryRequest enquiryRequest)
     {
-        String name = userService.nameEnquiry(enquiryRequestDTO);
+        String name = userService.nameEnquiry(enquiryRequest);
         if (name.isEmpty())
         {
-            ResponseDTO response = ResponseDTO.builder()
+            ApiResponse<List<UserResponse>> response = ApiResponse.<List<UserResponse>>builder()
                     .responseCode(AccountUtils.ACCOUNT_NOT_FOUND_CODE)
                     .responseMessage(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE)
-                    .accountInfo(null)
+                    .data(null)
                     .build();
 
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
-        ResponseDTO response = ResponseDTO.builder()
+        ApiResponse<List<UserResponse>> response = ApiResponse.<List<UserResponse>>builder()
                 .responseCode(AccountUtils.ACCOUNT_FOUND_CODE)
                 .responseMessage(AccountUtils.ACCOUNT_FOUND_MESSAGE)
-                .accountInfo(AccountInfoDTO.builder()
-                        .accountName(name)
-                        .build())
+                //todo check
+                //                .userResponseDTO(UserResponseDTO.builder().accountName(name).build())
+                .data(null)
                 .build();
 
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -72,10 +74,10 @@ public class UserController
 
     // Credit an account (by account number)
     @PostMapping("credit")
-    public ResponseEntity<ResponseDTO>
-    creditAccount(@Valid @RequestBody CreditDebitRequestDTO creditDebitRequestDTO)
+    public ResponseEntity<ApiResponse<List<UserResponse>>>
+    creditAccount(@Valid @RequestBody CreditDebitRequest creditDebitRequest)
     {
-        ResponseDTO response = userService.creditAccount(creditDebitRequestDTO);
+        ApiResponse<List<UserResponse>> response = userService.creditAccount(creditDebitRequest);
         if (response.responseCode().equals(AccountUtils.ACCOUNT_CREDITED_SUCCESS_CODE))
         {
             return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -85,10 +87,10 @@ public class UserController
 
     // Debit an account (by account number)
     @PostMapping("debit")
-    public ResponseEntity<ResponseDTO>
-    debitAccount(@Valid @RequestBody CreditDebitRequestDTO creditDebitRequestDTO)
+    public ResponseEntity<ApiResponse<List<UserResponse>>>
+    debitAccount(@Valid @RequestBody CreditDebitRequest creditDebitRequest)
     {
-        ResponseDTO response = userService.debitAccount(creditDebitRequestDTO);
+        ApiResponse<List<UserResponse>> response = userService.debitAccount(creditDebitRequest);
         if (response.responseCode().equals(AccountUtils.ACCOUNT_DEBITED_SUCCESS_CODE))
         {
             return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -97,14 +99,37 @@ public class UserController
     }
 
     @PostMapping("transfer")
-    public ResponseEntity<ResponseDTO>
-    transferAmount(@Valid @RequestBody TransferRequestDTO transferRequestDTO)
+    public ResponseEntity<ApiResponse<List<UserResponse>>>
+    transferAmount(@Valid @RequestBody TransferRequest transferRequest)
     {
-        ResponseDTO response = userService.transferAmount(transferRequestDTO);
+        ApiResponse<List<UserResponse>> response = userService.transferAmount(transferRequest);
         if (response.responseCode().equals(AccountUtils.TRANSFER_SUCCESS_CODE))
         {
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         }
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<UserResponse>>>
+    searchUser(@ModelAttribute UserSearchCriteria userSearchCriteria)
+    //@ModelAttribute used for mapping request => object
+    {
+        List<UserResponse> results = userService.searchUsers(userSearchCriteria);
+        boolean found = !results.isEmpty();
+
+        ApiResponse<List<UserResponse>> response =
+                ApiResponse.<List<UserResponse>>builder()
+                        .responseCode(found ? AccountUtils.USER_FOUND_SUCCESS_CODE
+                                : AccountUtils.USER_NOT_FOUND_SUCCESS_CODE
+                        )
+                        .responseMessage(
+                                found ? AccountUtils.USER_FOUND_SUCCESS_MESSAGE
+                                        : AccountUtils.USER_NOT_FOUND_SUCCESS_MESSAGE
+                        )
+                        .data(results)
+                        .build();
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

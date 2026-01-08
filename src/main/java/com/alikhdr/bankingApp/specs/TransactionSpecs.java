@@ -13,7 +13,7 @@ public class TransactionSpecs
     isEquals(String fieldName, T value)
     {
         return (root, query, cb) ->
-                value == null ? null : cb.equal(root.get(fieldName), value);
+                value == null ? cb.conjunction() : cb.equal(root.get(fieldName), value);
     }
 
     // LIKE
@@ -23,7 +23,7 @@ public class TransactionSpecs
         return (root, query, cb) ->
         {
             if (text == null || text.isBlank())
-                return null;
+                return cb.conjunction();
             return cb.like(cb.lower(root.get(fieldName)), "%" + text.toLowerCase() + "%");
         };
     }
@@ -40,7 +40,7 @@ public class TransactionSpecs
                 return cb.greaterThanOrEqualTo(root.get(Transaction_.AMOUNT), min);
             if (max != null)
                 return cb.lessThanOrEqualTo(root.get(Transaction_.AMOUNT), max);
-            return null;
+            return cb.conjunction();
         };
     }
 }

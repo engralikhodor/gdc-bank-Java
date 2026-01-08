@@ -2,11 +2,12 @@ package com.alikhdr.bankingApp.dto;
 
 import lombok.Builder;
 
+// Generic response
 @Builder
-public record ResponseDTO(
+public record ApiResponse<T>(
         String responseCode,
         String responseMessage,
-        AccountInfoDTO accountInfo
+        T data
 )
 {
 }

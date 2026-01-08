@@ -14,17 +14,12 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TransferRequestDTO
+public class CreditDebitRequest
 {
-    @NotBlank(message = "The sender's account number can't be empty.")
-    private String fromAccountNumber;
-
-    @NotBlank(message = "The recipient's account number can't be empty.")
-    private String toAccountNumber;
-
-    private String remarks;
+    @NotBlank(message = "The account number can't be empty.")
+    private String accountNumber;
 
     @NotNull(message = "The amount can't be empty.")
     @Positive(message = "The amount must be greater than zero.")
-    private BigDecimal amountToTransfer;
+    private BigDecimal amount;
 }
