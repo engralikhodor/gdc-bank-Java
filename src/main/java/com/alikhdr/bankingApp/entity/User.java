@@ -1,5 +1,6 @@
 package com.alikhdr.bankingApp.entity;
 
+import com.alikhdr.bankingApp.controller.UserCredentials;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -98,4 +99,7 @@ public class User
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Transaction> transactions;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private UserCredentials userCredentials;
 }
