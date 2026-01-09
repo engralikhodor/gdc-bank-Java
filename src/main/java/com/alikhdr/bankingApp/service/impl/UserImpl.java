@@ -60,7 +60,7 @@ public class UserImpl implements UserService
     {
         User userToDebit = userRepository.findByAccountNumber(creditDebitRequest.getAccountNumber());
 
-        // 1. Check if account exists
+        // check if account exists
         if (userToDebit == null)
         {
             return ApiResponse.<UserResponse>builder()
@@ -71,7 +71,7 @@ public class UserImpl implements UserService
 
         BigDecimal amount = creditDebitRequest.getAmount();
 
-        // 2. Validate against transfer limits
+        // validate against transfer limits
         if (amount.compareTo(AccountUtils.DEFAULT_TRANSFER_LIMIT) > 0)
         {
             return ApiResponse.<UserResponse>builder()
@@ -80,7 +80,7 @@ public class UserImpl implements UserService
                     .build();
         }
 
-        // 3. Check for sufficient funds
+        // check for sufficient funds
         if (userToDebit.getAccountBalance().compareTo(amount) < 0)
         {
             return ApiResponse.<UserResponse>builder()
@@ -89,11 +89,11 @@ public class UserImpl implements UserService
                     .build();
         }
 
-        // 4. Update balance and save
+        // update balance and save
         userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(amount));
         userRepository.save(userToDebit);
 
-        // 5. Log the transaction asynchronously
+        // log transaction async.
         transactionService.saveTransaction(TransactionRequest.builder()
                 .amount(amount)
                 .accountNumber(userToDebit.getAccountNumber())
@@ -102,7 +102,7 @@ public class UserImpl implements UserService
                 .remarks("Manual Debit")
                 .build());
 
-        // 6. Send notification (Async)
+        // send notification (Async)
         sendTransactionEmail(userToDebit, amount, "Debited");
 
         return ApiResponse.<UserResponse>builder()
@@ -150,7 +150,7 @@ public class UserImpl implements UserService
         User fromUser = userRepository.findByAccountNumber(transferRequest.getFromAccountNumber());
         User toUser = userRepository.findByAccountNumber(transferRequest.getToAccountNumber());
 
-        // 1. Validate accounts
+        // validate accounts
         if (fromUser == null || toUser == null)
         {
             return ApiResponse.<UserResponse>builder()
@@ -161,7 +161,7 @@ public class UserImpl implements UserService
 
         BigDecimal amount = transferRequest.getAmountToTransfer();
 
-        // 2. Validate balance and limits
+        // validate balance and limits
         if (amount.compareTo(AccountUtils.DEFAULT_TRANSFER_LIMIT) > 0)
         {
             return ApiResponse.<UserResponse>builder()
@@ -176,7 +176,7 @@ public class UserImpl implements UserService
                     .build();
         }
 
-        // 3. Execute updates via helper to ensure transaction logs are created
+        // execute updates via helper to ensure transaction logs are created
         executeBalanceUpdate(fromUser.getAccountNumber(), amount, TransactionTypeOptions.DEBIT, transferRequest.getRemarks());
         executeBalanceUpdate(toUser.getAccountNumber(), amount, TransactionTypeOptions.CREDIT, transferRequest.getRemarks());
 

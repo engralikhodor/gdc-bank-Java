@@ -1,6 +1,7 @@
 package com.alikhdr.bankingApp;
 
 import com.alikhdr.bankingApp.dto.*;
+import com.alikhdr.bankingApp.entity.CurrencyOptions;
 import com.alikhdr.bankingApp.entity.User;
 import com.alikhdr.bankingApp.mapper.UserMapper;
 import com.alikhdr.bankingApp.repository.UserRepository;
@@ -20,6 +21,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -86,25 +88,84 @@ public class UserServiceTest
     @DisplayName("Should successfully credit user account and send notification")
     void creditAccount_Success()
     {
-        CreditDebitRequest request = new CreditDebitRequest("12345", new BigDecimal("5000.00"));
+        // Arrange
+        BigDecimal initialBalance = new BigDecimal("1000.00");
+        BigDecimal creditAmount = new BigDecimal("500.00");
+        BigDecimal finalBalance = new BigDecimal("1500.00");
+
+        CreditDebitRequest request = new CreditDebitRequest("12345", creditAmount);
         User mockUser = new User();
         mockUser.setFirstName("John");
         mockUser.setAccountNumber("12345");
-        mockUser.setAccountBalance(new BigDecimal("1000.00"));
+        mockUser.setAccountBalance(initialBalance);
         mockUser.setEmail("john@example.com");
 
-        when(userRepository.existsByAccountNumber("12345")).thenReturn(true);
+        // The DTO that the mapper SHOULD return
+        UserResponse mockResponse = UserResponse.builder()
+                .accountBalance(finalBalance)
+                .accountName("John Doe")
+                .build();
+
         when(userRepository.findByAccountNumber("12345")).thenReturn(mockUser);
 
+        // CRITICAL: Tell the mapper to return our mockResponse
+        when(userMapper.entityToResponse(any(User.class))).thenReturn(mockResponse);
+
+        // Act
         ApiResponse<UserResponse> response = userService.creditAccount(request);
 
-        // check results
+        // Assert
+        assertNotNull(response.data()); // Prevents NullPointerException
         assertEquals(AccountUtils.ACCOUNT_CREDITED_SUCCESS_CODE, response.responseCode());
-        assertEquals(new BigDecimal("1500.00"), response.data().accountBalance());
+        assertEquals(finalBalance, response.data().accountBalance());
 
-        // check behavior
-        verify(userRepository, times(1)).save(any(User.class));
-        verify(transactionService, times(1)).saveTransaction(any(TransactionRequest.class));
-        verify(emailService, times(1)).sendEmailNotification(any(EmailDetailsDTO.class));
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should return account not found message for invalid account number")
+    void nameEnquiry_AccountNotFound()
+    {
+        EnquiryRequest request = new EnquiryRequest();
+        request.setAccountNumber("999");
+        when(userRepository.existsByAccountNumber("999")).thenReturn(false);
+        String result = userService.nameEnquiry(request);
+        assertEquals(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE, result);// what user/api will receive
+        verify(userRepository, never()).findByAccountNumber(anyString());// what will happen behind the scenes
+    }
+
+    @Test
+    @DisplayName("Should successfully transfer money between two valid accounts")
+    void transferAmount_Success()
+    {
+        TransferRequest request = TransferRequest.builder()
+                .fromAccountNumber("111")
+                .toAccountNumber("222")
+                .amountToTransfer(new BigDecimal("200.00"))
+                .remarks("Test transfer")
+                .build();
+
+        User fromUser = new User();
+        fromUser.setAccountNumber("111");
+        fromUser.setFirstName("Sender");
+        fromUser.setAccountBalance(new BigDecimal("1000.00"));
+        fromUser.setBaseCurrency(CurrencyOptions.USD);
+
+        User toUser = new User();
+        toUser.setAccountNumber("222");
+        toUser.setFirstName("Receiver");
+        toUser.setAccountBalance(new BigDecimal("500.00"));
+        toUser.setBaseCurrency(CurrencyOptions.USD);
+
+        when(userRepository.findByAccountNumber("111")).thenReturn(fromUser);
+        when(userRepository.findByAccountNumber("222")).thenReturn(toUser);
+
+        ApiResponse response = userService.transferAmount(request);
+
+        assertEquals(AccountUtils.TRANSFER_SUCCESS_CODE, response.responseCode());
+
+        verify(userRepository, times(2)).save(any(User.class));// update both users' balances
+        verify(transactionService, times(2)).saveTransaction(any(TransactionRequest.class));// add 2 rows to `transaction` table
+        verify(emailService, times(1)).sendEmailNotification(any(EmailDetailsDTO.class));// email debit only
     }
 }
