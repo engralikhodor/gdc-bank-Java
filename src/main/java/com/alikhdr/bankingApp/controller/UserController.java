@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user/")
+@RequestMapping("/api/v1/user/")
 @RequiredArgsConstructor
 public class UserController
 {
@@ -20,25 +20,18 @@ public class UserController
 
     // Create a new user
     @PostMapping
-    public ResponseEntity<ApiResponse<UserResponse>> createAccount(@Valid @RequestBody UserRequest request)
+    public ResponseEntity<ApiResponse<UserResponse>>
+    createAccount(@Valid @RequestBody UserRequest request)
     {
         ApiResponse<UserResponse> response = userService.createAccount(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    // Debit an account (by account number)
-    @PostMapping("debit")
-    public ResponseEntity<ApiResponse<UserResponse>> debitAccount(@Valid @RequestBody CreditDebitRequest request)
-    {
-        ApiResponse<UserResponse> response = userService.debitAccount(request);
-        HttpStatus status = response.responseCode().equals(AccountUtils.ACCOUNT_DEBITED_SUCCESS_CODE)
-                ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
-        return new ResponseEntity<>(response, status);
-    }
 
     //@ModelAttribute used for mapping request => object
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<UserResponse>>> searchUser(@ModelAttribute UserSearchCriteria criteria)
+    @GetMapping("search")
+    public ResponseEntity<ApiResponse<List<UserResponse>>>
+    searchUser(@ModelAttribute UserSearchCriteria criteria)
     {
         List<UserResponse> results = userService.searchUsers(criteria);
         boolean found = !results.isEmpty();
@@ -54,7 +47,8 @@ public class UserController
 
     // Get balance of user
     @GetMapping("balanceEnquiry")
-    public ResponseEntity<ApiResponse<UserResponse>> balanceEnquiry(@RequestBody EnquiryRequest enquiryRequest)
+    public ResponseEntity<ApiResponse<UserResponse>>
+    balanceEnquiry(@RequestBody EnquiryRequest enquiryRequest)
     {
         // Services now return ApiResponse<UserResponse> instead of List
         ApiResponse<UserResponse> response = userService.balanceEnquiry(enquiryRequest);
@@ -68,7 +62,8 @@ public class UserController
 
     // Get name of user
     @GetMapping("nameEnquiry")
-    public ResponseEntity<ApiResponse<String>> nameEnquiry(@RequestBody EnquiryRequest enquiryRequest)
+    public ResponseEntity<ApiResponse<String>>
+    nameEnquiry(@RequestBody EnquiryRequest enquiryRequest)
     {
         String name = userService.nameEnquiry(enquiryRequest);
 
@@ -95,22 +90,30 @@ public class UserController
 
     // Credit an account (by account number)
     @PostMapping("credit")
-    public ResponseEntity<ApiResponse<UserResponse>> creditAccount(@Valid @RequestBody CreditDebitRequest creditDebitRequest)
+    public ResponseEntity<ApiResponse<UserResponse>>
+    creditAccount(@Valid @RequestBody CreditDebitRequest request)
     {
-        // Removed List wrapper to match the single object returned by the service
-        ApiResponse<UserResponse> response = userService.creditAccount(creditDebitRequest);
+        ApiResponse<UserResponse> response = userService.creditAccount(request);
+        HttpStatus status = response.responseCode().equals(AccountUtils.ACCOUNT_CREDITED_SUCCESS_CODE)
+                ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
+        return new ResponseEntity<>(response, status);
+    }
 
-        if (response.responseCode().equals(AccountUtils.ACCOUNT_CREDITED_SUCCESS_CODE))
-        {
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    // Debit an account (by account number)
+    @PostMapping("debit")
+    public ResponseEntity<ApiResponse<UserResponse>>
+    debitAccount(@Valid @RequestBody CreditDebitRequest request)
+    {
+        ApiResponse<UserResponse> response = userService.debitAccount(request);
+        HttpStatus status = response.responseCode().equals(AccountUtils.ACCOUNT_DEBITED_SUCCESS_CODE)
+                ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
+        return new ResponseEntity<>(response, status);
     }
 
     @PostMapping("transfer")
-    public ResponseEntity<ApiResponse<UserResponse>> transferAmount(@Valid @RequestBody TransferRequest transferRequest)
+    public ResponseEntity<ApiResponse<UserResponse>>
+    transferAmount(@Valid @RequestBody TransferRequest transferRequest)
     {
-        // Transfer now returns the sender's updated UserResponse
         ApiResponse<UserResponse> response = userService.transferAmount(transferRequest);
 
         if (response.responseCode().equals(AccountUtils.TRANSFER_SUCCESS_CODE))

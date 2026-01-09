@@ -48,4 +48,8 @@ public class Transaction
 
     @Version
     private Long version; // Optimistic Locking: protect the State of the record (Best Practice)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 }

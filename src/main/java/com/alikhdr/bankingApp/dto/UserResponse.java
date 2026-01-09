@@ -4,8 +4,7 @@ import lombok.Builder;
 
 import java.math.BigDecimal;
 
-// (Response): To return data, including system-generated fields
-// for sure, we don't add `version` and sensitive columns here
+// (Response): return data
 @Builder
 public record UserResponse
         (

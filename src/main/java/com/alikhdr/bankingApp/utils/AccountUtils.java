@@ -41,7 +41,9 @@ public class AccountUtils
     public static final String USER_NOT_FOUND_SUCCESS_MESSAGE = "User not found!";
     public static final String TRANSACTION_NOT_FOUND_SUCCESS_CODE = "013";
     public static final String TRANSACTION_NOT_FOUND_SUCCESS_MESSAGE = "Transaction not found!";
-
+    public static final String SAME_ACCOUNT_TRANSFER_CODE = "014";
+    public static final String SAME_ACCOUNT_TRANSFER_MESSAGE = "You can't send from-to the same account!";
+ 
 
     public static final BigDecimal DEFAULT_TRANSFER_LIMIT = new BigDecimal("5000.00");
 

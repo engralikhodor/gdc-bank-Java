@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/ai/transactions")
+@RequestMapping("/api/v1/ai/transactions")
 @RequiredArgsConstructor
 public class AiController
 {

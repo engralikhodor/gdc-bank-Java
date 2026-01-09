@@ -2,10 +2,7 @@ package com.alikhdr.bankingApp.service.impl;
 
 import com.alikhdr.bankingApp.dto.*;
 import com.alikhdr.bankingApp.entity.*;
-import com.alikhdr.bankingApp.exception.AlternativePhoneNumberExistsException;
-import com.alikhdr.bankingApp.exception.EmailAlreadyExistsException;
-import com.alikhdr.bankingApp.exception.GovernmentIdExistsException;
-import com.alikhdr.bankingApp.exception.PhoneNumberAlreadyExistsException;
+import com.alikhdr.bankingApp.exception.*;
 import com.alikhdr.bankingApp.mapper.UserMapper;
 import com.alikhdr.bankingApp.repository.UserRepository;
 import com.alikhdr.bankingApp.service.EmailService;
@@ -22,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,63 +52,6 @@ public class UserImpl implements UserService
         ).trim();
     }
 
-    @Override
-    @Transactional // Non-negotiable for data integrity in financial operations
-    public ApiResponse<UserResponse> debitAccount(CreditDebitRequest creditDebitRequest)
-    {
-        User userToDebit = userRepository.findByAccountNumber(creditDebitRequest.getAccountNumber());
-
-        // check if account exists
-        if (userToDebit == null)
-        {
-            return ApiResponse.<UserResponse>builder()
-                    .responseCode(AccountUtils.ACCOUNT_NOT_FOUND_CODE)
-                    .responseMessage(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE)
-                    .build();
-        }
-
-        BigDecimal amount = creditDebitRequest.getAmount();
-
-        // validate against transfer limits
-        if (amount.compareTo(AccountUtils.DEFAULT_TRANSFER_LIMIT) > 0)
-        {
-            return ApiResponse.<UserResponse>builder()
-                    .responseCode(AccountUtils.EXCEEDS_TRANSFER_LIMIT_CODE)
-                    .responseMessage(AccountUtils.EXCEEDS_TRANSFER_LIMIT_MESSAGE)
-                    .build();
-        }
-
-        // check for sufficient funds
-        if (userToDebit.getAccountBalance().compareTo(amount) < 0)
-        {
-            return ApiResponse.<UserResponse>builder()
-                    .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
-                    .responseMessage(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE)
-                    .build();
-        }
-
-        // update balance and save
-        userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(amount));
-        userRepository.save(userToDebit);
-
-        // log transaction async.
-        transactionService.saveTransaction(TransactionRequest.builder()
-                .amount(amount)
-                .accountNumber(userToDebit.getAccountNumber())
-                .transactionType(TransactionTypeOptions.DEBIT)
-                .status("COMPLETED")
-                .remarks("Manual Debit")
-                .build());
-
-        // send notification (Async)
-        sendTransactionEmail(userToDebit, amount, "Debited");
-
-        return ApiResponse.<UserResponse>builder()
-                .responseCode(AccountUtils.ACCOUNT_DEBITED_SUCCESS_CODE)
-                .responseMessage(AccountUtils.ACCOUNT_DEBITED_SUCCESS_MESSAGE)
-                .data(userMapper.entityToResponse(userToDebit))
-                .build();
-    }
 
     private void sendTransactionEmail(User user, BigDecimal amount, String transactionType)
     {
@@ -153,10 +94,15 @@ public class UserImpl implements UserService
         // validate accounts
         if (fromUser == null || toUser == null)
         {
-            return ApiResponse.<UserResponse>builder()
-                    .responseCode(AccountUtils.ACCOUNT_NOT_FOUND_CODE)
-                    .responseMessage(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE)
-                    .build();
+            throw new AccountNotFoundException(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE);
+        }
+
+        // prevent send from-to the same user
+        if (Objects.equals(
+                fromUser.getAccountNumber(),
+                toUser.getAccountNumber()))
+        {
+            throw new SameAccountTransferException(AccountUtils.SAME_ACCOUNT_TRANSFER_MESSAGE);
         }
 
         BigDecimal amount = transferRequest.getAmountToTransfer();
@@ -164,16 +110,12 @@ public class UserImpl implements UserService
         // validate balance and limits
         if (amount.compareTo(AccountUtils.DEFAULT_TRANSFER_LIMIT) > 0)
         {
-            return ApiResponse.<UserResponse>builder()
-                    .responseCode(AccountUtils.EXCEEDS_TRANSFER_LIMIT_CODE)
-                    .build();
+            throw new ExceedsTransferLimitException(AccountUtils.EXCEEDS_TRANSFER_LIMIT_CODE);
         }
 
         if (fromUser.getAccountBalance().compareTo(amount) < 0)
         {
-            return ApiResponse.<UserResponse>builder()
-                    .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
-                    .build();
+            throw new InsufficientResourcesException(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE);
         }
 
         // execute updates via helper to ensure transaction logs are created
@@ -232,9 +174,8 @@ public class UserImpl implements UserService
             throw new PhoneNumberAlreadyExistsException(AccountUtils.PHONE_NUMBER_ALREADY_EXISTS_MESSAGE);
         }
 
-        if (
-                userRequest.getAlternativePhoneNumber() != null &&
-                        userRepository.existsByAlternativePhoneNumber((userRequest.getAlternativePhoneNumber())))
+        if (userRequest.getAlternativePhoneNumber() != null
+                && userRepository.existsByAlternativePhoneNumber((userRequest.getAlternativePhoneNumber())))
         {
             throw new AlternativePhoneNumberExistsException(AccountUtils.ALTERNATIVE_NUMBER_ALREADY_EXISTS_MESSAGE);
         }
@@ -253,7 +194,37 @@ public class UserImpl implements UserService
 
         User savedUser = userRepository.save(newUser);
 
-        // Email logic...
+        String htmlBody = """
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
+                        <h2 style="color: #2c3e50;">Welcome to %s!</h2>
+                        <p>Dear %s,</p>
+                        <p>Your bank account has been successfully created. Here are your account details:</p>
+                        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                            <p><strong>Account Name:</strong> %s %s</p>
+                            <p><strong>Account Number:</strong> <span style="color: #2980b9; font-size: 1.2em;">%s</span></p>
+                            <p><strong>Status:</strong> ACTIVE</p>
+                        </div>
+                        <p>Please keep this information secure. You can now log in and start managing your finances.</p>
+                        <hr style="border: 0; border-top: 1px solid #eee;" />
+                        <footer style="font-size: 0.8em; color: #888;">
+                            This is an automated message from %s Security Team.
+                        </footer>
+                    </div>
+                """.formatted(
+                bankName,
+                savedUser.getFirstName(),
+                savedUser.getFirstName(),
+                savedUser.getLastName(),
+                savedUser.getAccountNumber(),
+                bankName);
+
+        EmailDetailsDTO emailDetailsDTO = EmailDetailsDTO.builder()
+                .recipient(savedUser.getEmail())
+                .subject("Account Created Successfully")
+                .messageBody(htmlBody)
+                .build();
+
+        emailService.sendEmailNotification(emailDetailsDTO);// async
 
         UserResponse data = userMapper.entityToResponse(savedUser);
 
@@ -270,10 +241,7 @@ public class UserImpl implements UserService
         User foundUser = userRepository.findByAccountNumber(enquiryRequest.getAccountNumber());
         if (foundUser == null)
         {
-            return ApiResponse.<UserResponse>builder()
-                    .responseCode(AccountUtils.ACCOUNT_NOT_FOUND_CODE)
-                    .responseMessage(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE)
-                    .build();
+            throw new AccountNotFoundException(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE);
         }
 
         return ApiResponse.<UserResponse>builder()
@@ -285,27 +253,83 @@ public class UserImpl implements UserService
 
     @Override
     @Transactional
-    public ApiResponse<UserResponse> creditAccount(CreditDebitRequest request)
+    public ApiResponse<UserResponse>
+    debitAccount(CreditDebitRequest creditDebitRequest)
     {
-        User user = userRepository.findByAccountNumber(request.getAccountNumber());
-        if (user == null)
+        User userToDebit = userRepository.findByAccountNumber(creditDebitRequest.getAccountNumber());
+
+        // check if account exists
+        if (userToDebit == null)
         {
-            return ApiResponse.<UserResponse>builder()
-                    .responseCode(AccountUtils.ACCOUNT_NOT_FOUND_CODE)
-                    .build();
+            throw new AccountNotFoundException(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE);
         }
 
-        // Logic to update balance and save transaction...
-        user.setAccountBalance(user.getAccountBalance().add(request.getAmount()));
-        userRepository.save(user);
+        BigDecimal amount = creditDebitRequest.getAmount();
+
+        // validate against transfer limits
+        if (amount.compareTo(AccountUtils.DEFAULT_TRANSFER_LIMIT) > 0)
+        {
+            throw new ExceedsTransferLimitException(AccountUtils.EXCEEDS_TRANSFER_LIMIT_MESSAGE);
+        }
+
+        // check for sufficient funds
+        if (userToDebit.getAccountBalance().compareTo(amount) < 0)
+        {
+            throw new InsufficientResourcesException(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE);
+        }
+
+        // update balance and save
+        userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(amount));
+        userRepository.save(userToDebit);
+
+        // log transaction async.
+        transactionService.saveTransaction(TransactionRequest.builder()
+                .amount(amount)
+                .accountNumber(userToDebit.getAccountNumber())
+                .transactionType(TransactionTypeOptions.DEBIT)
+                .status("COMPLETED")
+                .remarks("Manual Debit")
+                .build());
+
+        // send notification (Async)
+        sendTransactionEmail(userToDebit, amount, "Debited");
+
+        return ApiResponse.<UserResponse>builder()
+                .responseCode(AccountUtils.ACCOUNT_DEBITED_SUCCESS_CODE)
+                .responseMessage(AccountUtils.ACCOUNT_DEBITED_SUCCESS_MESSAGE)
+                .data(userMapper.entityToResponse(userToDebit))
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<UserResponse>
+    creditAccount(CreditDebitRequest request)
+    {
+        User userToCredit = userRepository.findByAccountNumber(request.getAccountNumber());
+
+        if (userToCredit == null)
+        {
+            throw new AccountNotFoundException(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE);
+        }
+
+        BigDecimal amount = request.getAmount();
+
+        // validate against transfer limits
+        if (amount.compareTo(AccountUtils.DEFAULT_TRANSFER_LIMIT) > 0)
+        {
+            throw new ExceedsTransferLimitException(AccountUtils.EXCEEDS_TRANSFER_LIMIT_MESSAGE);
+        }
+
+        userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(request.getAmount()));
+        userRepository.save(userToCredit);
 
         return ApiResponse.<UserResponse>builder()
                 .responseCode(AccountUtils.ACCOUNT_CREDITED_SUCCESS_CODE)
                 .responseMessage(AccountUtils.ACCOUNT_CREDITED_SUCCESS_MESSAGE)
-                .data(userMapper.entityToResponse(user))
+                .data(userMapper.entityToResponse(userToCredit))
                 .build();
     }
-
 
     @Override
     public List<UserResponse> searchUsers(UserSearchCriteria criteria)

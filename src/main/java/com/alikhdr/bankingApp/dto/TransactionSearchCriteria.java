@@ -5,7 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 
-// (Filter): Used for Searching. It contains optional fields like minAmount and maxAmount / not for creation
+// (Filter): search
 @Data
 public class TransactionSearchCriteria
 {

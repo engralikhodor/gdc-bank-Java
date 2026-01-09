@@ -6,8 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-// (Response): To return data, including system-generated fields
-// for sure, we don't add `version` and sensitive columns here
+// (Response): return data
 public record TransactionResponse
         (
                 UUID id,

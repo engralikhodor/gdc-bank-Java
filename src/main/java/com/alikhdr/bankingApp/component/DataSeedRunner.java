@@ -31,7 +31,7 @@ public class DataSeedRunner implements CommandLineRunner
             return;
         }
 
-        // 1. Create Lebanese Users
+        // Create Lebanese Users
         User charbel = User.builder()
                 .firstName("Charbel")
                 .lastName("Mansour")
@@ -68,9 +68,8 @@ public class DataSeedRunner implements CommandLineRunner
 
         userRepository.saveAll(List.of(charbel, laila));
 
-        // 2. Generate 30 Transactions for Charbel
+        // Generate 30 Transactions for Charbel
         Random random = new Random();
-        // Senior Fix: Use Enum values instead of Strings to avoid compilation errors
         TransactionStatusOptions[] statuses = {
                 TransactionStatusOptions.SUCCESS,
                 TransactionStatusOptions.PENDING

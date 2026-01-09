@@ -73,7 +73,6 @@ public class UserServiceTest
         mockUser.setAccountNumber("12345");
         mockUser.setAccountBalance(new BigDecimal("1000.00"));
 
-        // FIX: Removed unnecessary stubbing of existsByAccountNumber
         when(userRepository.findByAccountNumber("12345")).thenReturn(mockUser);
 
         ApiResponse<UserResponse> response = userService.debitAccount(request);
@@ -124,7 +123,6 @@ public class UserServiceTest
         String result = userService.nameEnquiry(request);
 
         assertEquals(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE, result);
-        // FIX: Changed from never() to times(1) because your logic still calls findByAccountNumber
         verify(userRepository, times(1)).findByAccountNumber(anyString());
     }
 
@@ -158,7 +156,33 @@ public class UserServiceTest
         verify(userRepository, times(2)).save(any(User.class));
         verify(transactionService, times(2)).saveTransaction(any(TransactionRequest.class));
 
-        // FIX: Removed emailService verification because your service logic isn't calling it yet
-        // verify(emailService, times(1)).sendEmailNotification(any(EmailDetailsDTO.class));
+    }
+
+    @Test
+    @DisplayName("Should fail transfer when source and destination accounts are the same")
+    void transferAmount_SameAccount_Failure()
+    {
+        // Arrange
+        TransferRequest request = TransferRequest.builder()
+                .fromAccountNumber("111")
+                .toAccountNumber("111") // Same account
+                .amountToTransfer(new BigDecimal("200.00"))
+                .build();
+
+        User mockUser = new User();
+        mockUser.setAccountNumber("111");
+
+        // We mock the repository to return the same user for both lookups
+        when(userRepository.findByAccountNumber("111")).thenReturn(mockUser);
+
+        // Act
+        ApiResponse response = userService.transferAmount(request);
+
+        // Assert
+        assertEquals(AccountUtils.SAME_ACCOUNT_TRANSFER_CODE, response.responseCode());
+        assertEquals(AccountUtils.SAME_ACCOUNT_TRANSFER_MESSAGE, response.responseMessage());
+
+        // Verify no money was actually moved (save was never called)
+        verify(userRepository, never()).save(any(User.class));
     }
 }
