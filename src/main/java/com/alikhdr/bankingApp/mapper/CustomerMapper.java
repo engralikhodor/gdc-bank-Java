@@ -1,16 +1,16 @@
 package com.alikhdr.bankingApp.mapper;
 
-import com.alikhdr.bankingApp.dto.UserRequest;
-import com.alikhdr.bankingApp.dto.UserResponse;
-import com.alikhdr.bankingApp.entity.User;
+import com.alikhdr.bankingApp.dto.CustomerRequest;
+import com.alikhdr.bankingApp.dto.CustomerResponse;
+import com.alikhdr.bankingApp.entity.Customer;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
-public interface UserMapper
+public interface CustomerMapper
 {
     // Entity -> Response (Output)
-    UserResponse entityToResponse(User user);
+    CustomerResponse entityToResponse(Customer customer);
 
     // Request -> Entity (Input)
     @Mapping(target = "id", ignore = true)
@@ -19,5 +19,5 @@ public interface UserMapper
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "modifiedAt", ignore = true)
-    User requestToEntity(UserRequest userRequest);
+    Customer requestToEntity(CustomerRequest customerRequest);
 }

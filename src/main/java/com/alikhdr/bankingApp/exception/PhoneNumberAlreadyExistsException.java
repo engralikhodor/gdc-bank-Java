@@ -1,9 +1,11 @@
 package com.alikhdr.bankingApp.exception;
 
+import com.alikhdr.bankingApp.utils.AccountUtils;
+
 public class PhoneNumberAlreadyExistsException extends RuntimeException
 {
-    public PhoneNumberAlreadyExistsException(String message)
+    public PhoneNumberAlreadyExistsException()
     {
-        super(message);
+        super(AccountUtils.CUSTOMER_PHONE_ALREADY_EXISTS);
     }
 }

@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 // (Request): for Create
-public class UserRequest
+public class CustomerRequest
 {
     @NotBlank(message = "First name is mandatory")
     private String firstName;

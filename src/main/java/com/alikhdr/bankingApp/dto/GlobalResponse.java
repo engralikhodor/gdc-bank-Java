@@ -4,7 +4,7 @@ import lombok.Builder;
 
 // Generic response
 @Builder
-public record ApiResponse<T>(
+public record GlobalResponse<T>(
         String responseCode,
         String responseMessage,
         T data

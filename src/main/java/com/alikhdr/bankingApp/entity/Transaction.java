@@ -50,6 +50,6 @@ public class Transaction
     private Long version; // Optimistic Locking: protect the State of the record (Best Practice)
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 }

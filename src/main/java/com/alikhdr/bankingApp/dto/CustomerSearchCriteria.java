@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 // (Filter): Used for Searching. It contains optional fields like minAge / not for creation
-public class UserSearchCriteria
+public class CustomerSearchCriteria
 {
     @Positive(message = "Account number should be greater than zero.")
     private String accountNumber;

@@ -1,9 +1,11 @@
 package com.alikhdr.bankingApp.exception;
 
+import com.alikhdr.bankingApp.utils.AccountUtils;
+
 public class InsufficientResourcesException extends RuntimeException
 {
-    public InsufficientResourcesException(String message)
+    public InsufficientResourcesException()
     {
-        super(message);
+        super(AccountUtils.INSUFFICIENT_BALANCE);
     }
 }

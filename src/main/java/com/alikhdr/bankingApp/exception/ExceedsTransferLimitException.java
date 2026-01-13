@@ -1,9 +1,11 @@
 package com.alikhdr.bankingApp.exception;
 
+import com.alikhdr.bankingApp.utils.AccountUtils;
+
 public class ExceedsTransferLimitException extends RuntimeException
 {
-    public ExceedsTransferLimitException(String message)
+    public ExceedsTransferLimitException()
     {
-        super(message);
+        super(AccountUtils.EXCEEDS_TRANSFER_LIMIT_CODE);
     }
 }

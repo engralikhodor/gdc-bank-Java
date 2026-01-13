@@ -9,41 +9,60 @@ public class AccountUtils
 
     private AccountUtils()
     {
-        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
     public static final String ACCOUNT_EXISTS_CODE = "001";
-    public static final String EMAIL_ALREADY_EXISTS_MESSAGE = "User with provided email already exists!";
-    public static final String PHONE_NUMBER_ALREADY_EXISTS_MESSAGE = "User with provided phone number already exists!";
-    public static final String ALTERNATIVE_NUMBER_ALREADY_EXISTS_MESSAGE = "User with provided alternative phone number already exists!";
-    public static final String GOVERNMENT_ID_ALREADY_EXISTS_MESSAGE = "User with provided government ID already exists!";
-    public static final String ACCOUNT_CREATION_SUCCESS_CODE = "002";
-    public static final String ACCOUNT_CREATION_SUCCESS_MESSAGE = "Account created successfully!";
-    public static final String ACCOUNT_NOT_FOUND_CODE = "003";
-    public static final String ACCOUNT_NOT_FOUND_MESSAGE = "Account not found!";
-    public static final String ACCOUNT_FOUND_CODE = "004";
-    public static final String ACCOUNT_FOUND_MESSAGE = "Account found!";
-    public static final String ACCOUNT_CREDITED_SUCCESS_CODE = "005";
-    public static final String ACCOUNT_CREDITED_SUCCESS_MESSAGE = "Account credited successfully!";
-    public static final String ACCOUNT_DEBITED_SUCCESS_CODE = "006";
-    public static final String ACCOUNT_DEBITED_SUCCESS_MESSAGE = "Account debited successfully!";
+
+    public static final String CUSTOMER_EMAIL_ALREADY_EXISTS
+            = "Customer with provided email already exists!";
+
+    public static final String CUSTOMER_PHONE_ALREADY_EXISTS
+            = "Customer with provided phone number already exists!";
+
+    public static final String CUSTOMER_ALTERNATIVE_PHONE_ALREADY_EXISTS
+            = "Customer with provided alternative phone number already exists!";
+
+    public static final String CUSTOMER_GOVERNMENT_ID_ALREADY_EXISTS
+            = "Customer with provided government ID already exists!";
+
+    public static final String CUSTOMER_CREATED_SUCCESSFULLY = "Customer added successfully.";
+    public static final String CUSTOMER_CREATED_SUCCESSFULLY_CODE = "002";
+
+    public static final String CUSTOMER_NOT_FOUND = "Customer not found!";
+    public static final String CUSTOMER_NOT_FOUND_CODE = "003";
+
+    public static final String CUSTOMER_FOUND = "Customer found.";
+    public static final String CUSTOMER_FOUND_CODE = "004";
+
+    public static final String CUSTOMER_CREDITED_SUCCESSFULLY = "Customer credited successfully.";
+    public static final String CUSTOMER_CREDITED_SUCCESSFULLY_CODE = "005";
+
+    public static final String CUSTOMER_DEBITED_SUCCESSFULLY = "Customer debited successfully.";
+    public static final String CUSTOMER_DEBITED_SUCCESSFULLY_CODE = "006";
+
+    public static final String INSUFFICIENT_BALANCE = "Insufficient balance!";
     public static final String INSUFFICIENT_BALANCE_CODE = "007";
-    public static final String INSUFFICIENT_BALANCE_MESSAGE = "Insufficient balance!";
+
+    public static final String EXCEEDS_TRANSFER_LIMIT = "Exceeds transfer limit!";
     public static final String EXCEEDS_TRANSFER_LIMIT_CODE = "008";
-    public static final String EXCEEDS_TRANSFER_LIMIT_MESSAGE = "Exceeds transfer limit!";
-    public static final String TRANSFER_SUCCESS_CODE = "009";
-    public static final String TRANSFER_SUCCESS_MESSAGE = "Amount transferred successfully!";
-    public static final String USER_FOUND_SUCCESS_CODE = "010";
-    public static final String USER_FOUND_SUCCESS_MESSAGE = "User found successfully!";
-    public static final String TRANSACTION_FOUND_SUCCESS_CODE = "011";
-    public static final String TRANSACTION_FOUND_SUCCESS_MESSAGE = "Transaction found successfully!";
-    public static final String USER_NOT_FOUND_SUCCESS_CODE = "012";
-    public static final String USER_NOT_FOUND_SUCCESS_MESSAGE = "User not found!";
-    public static final String TRANSACTION_NOT_FOUND_SUCCESS_CODE = "013";
-    public static final String TRANSACTION_NOT_FOUND_SUCCESS_MESSAGE = "Transaction not found!";
-    public static final String SAME_ACCOUNT_TRANSFER_CODE = "014";
-    public static final String SAME_ACCOUNT_TRANSFER_MESSAGE = "You can't send from-to the same account!";
- 
+
+    public static final String AMOUNT_TRANSFERRED_SUCCESSFULLY = "Amount transferred successfully.";
+    public static final String AMOUNT_TRANSFERRED_CODE = "009";
+
+    public static final String TRANSACTION_FOUND_SUCCESSFULLY = "Transaction found successfully.";
+    public static final String TRANSACTION_FOUND_SUCCESSFULLY_CODE = "010";
+
+    public static final String TRANSACTION_NOT_FOUND = "Transaction not found!";
+    public static final String TRANSACTION_NOT_FOUND_CODE = "011";
+
+    public static final String SAME_ACCOUNT_TRANSFER = "You can't send from-to the same account!";
+    public static final String SAME_ACCOUNT_TRANSFER_CODE = "012";
+
+    public static final String USERNAME_ALREADY_TAKEN = "Username already taken!";
+    public static final String USERNAME_ALREADY_TAKEN_CODE = "013";
+
+    public static final String USERNAME_CREATED_SUCCESSFULLY = "Username created successfully.";
+    public static final String USERNAME_CREATED_SUCCESSFULLY_CODE = "014";
 
     public static final BigDecimal DEFAULT_TRANSFER_LIMIT = new BigDecimal("5000.00");
 

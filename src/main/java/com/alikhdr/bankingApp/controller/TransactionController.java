@@ -1,6 +1,6 @@
 package com.alikhdr.bankingApp.controller;
 
-import com.alikhdr.bankingApp.dto.ApiResponse;
+import com.alikhdr.bankingApp.dto.GlobalResponse;
 import com.alikhdr.bankingApp.dto.TransactionResponse;
 import com.alikhdr.bankingApp.dto.TransactionSearchCriteria;
 import com.alikhdr.bankingApp.service.TransactionService;
@@ -23,7 +23,7 @@ public class TransactionController
     private final TransactionService transactionService;
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<TransactionResponse>>> searchTransactions(
+    public ResponseEntity<GlobalResponse<List<TransactionResponse>>> searchTransactions(
             @ModelAttribute TransactionSearchCriteria searchCriteria)
 
     //@ModelAttribute used for mapping request => object
@@ -31,14 +31,14 @@ public class TransactionController
         List<TransactionResponse> results = transactionService.searchTransactions(searchCriteria);
         boolean found = !results.isEmpty();
 
-        ApiResponse<List<TransactionResponse>> response =
-                ApiResponse.<List<TransactionResponse>>builder()
-                        .responseCode(found ? AccountUtils.TRANSACTION_FOUND_SUCCESS_CODE
-                                : AccountUtils.TRANSACTION_NOT_FOUND_SUCCESS_CODE
+        GlobalResponse<List<TransactionResponse>> response =
+                GlobalResponse.<List<TransactionResponse>>builder()
+                        .responseCode(found ? AccountUtils.TRANSACTION_FOUND_SUCCESSFULLY_CODE
+                                : AccountUtils.TRANSACTION_NOT_FOUND_CODE
                         )
                         .responseMessage(
-                                found ? AccountUtils.TRANSACTION_FOUND_SUCCESS_MESSAGE
-                                        : AccountUtils.TRANSACTION_NOT_FOUND_SUCCESS_MESSAGE
+                                found ? AccountUtils.TRANSACTION_FOUND_SUCCESSFULLY
+                                        : AccountUtils.TRANSACTION_NOT_FOUND
                         )
                         .data(results)
                         .build();

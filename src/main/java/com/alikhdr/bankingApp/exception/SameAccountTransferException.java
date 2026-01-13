@@ -1,9 +1,11 @@
 package com.alikhdr.bankingApp.exception;
 
+import com.alikhdr.bankingApp.utils.AccountUtils;
+
 public class SameAccountTransferException extends RuntimeException
 {
-    public SameAccountTransferException(String message)
+    public SameAccountTransferException()
     {
-        super(message);
+        super(AccountUtils.SAME_ACCOUNT_TRANSFER);
     }
 }

@@ -1,9 +1,11 @@
 package com.alikhdr.bankingApp.exception;
 
+import com.alikhdr.bankingApp.utils.AccountUtils;
+
 public class AccountNotFoundException extends RuntimeException
 {
-    public AccountNotFoundException(String message)
+    public AccountNotFoundException()
     {
-        super(message);
+        super(AccountUtils.CUSTOMER_NOT_FOUND);
     }
 }

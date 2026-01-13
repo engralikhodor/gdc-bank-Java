@@ -1,46 +1,110 @@
-Smart Banking Platform
-Java 17 | Spring Boot 3.3 | JPA Criteria API
+A backend banking-style application built with Spring Boot, focused on
+customer management, account transactions, internal transfers, and
+AI-powered transaction insights.
 
-The Smart Banking Platform is a backend service designed to handle core financial operations with a focus on
-transactional integrity and high-performance data retrieval. The project is structured to maintain a strict separation
-between the API contract and the persistence layer, ensuring scalability and ease of maintenance.
+---
 
-Key Architectural Implementations
-Type-Safe Dynamic Querying
-Rather than using static repository methods, this project implements a dynamic search engine using the JPA Criteria API
-and Specification<T> patterns. This allows for complex filtering across multiple fields—such as transaction amounts,
-account statuses, and user demographics—without writing custom SQL or JPQL for every combination. To prevent runtime
-errors, Hibernate MetaModels are utilized to ensure that field references are checked at compile-time.
+## Tech Stack
 
-Data Decoupling and Mapping
-To ensure the internal database structure is never exposed directly to the consumer, the project employs a multi-DTO
-strategy managed by MapStruct:
+- Java 17
+- Spring Boot 3.3.0
+- Spring Data JPA
+- Spring Security
+- Hibernate
+- WebClient
+- OpenAI API
+- MySQL (relational database)
+- Async processing (`@Async`)
 
-Request Contracts: Dedicated DTOs for creating and updating resources, ensuring only relevant fields are processed.
+---
 
-Response Contracts: Controlled data exposure through records that include system-generated fields like UUIDs and
-timestamps while hiding internal versioning or sensitive metadata.
+### Authentication & Users
 
-Compile-Time Mapping: Use of annotation processors to generate optimized mapping code, reducing overhead and removing
-manual boilerplate.
+- User registration
+- User login endpoint
+- Password encryption (BCrypt)
+- Basic Spring Security configuration
 
-Transactional Reliability
-Given the nature of banking data, all state-changing operations (Transfers, Credits, Debits) are strictly managed within
-@Transactional boundaries. This ensures Atomicity, meaning if any part of a multi-step process (like a transfer between
-two accounts) fails, the entire operation rolls back to prevent data corruption.
+---
 
-AI-Powered Data Analysis
-The platform includes an integration with OpenAI's Chat Completion API via Spring’s reactive WebClient. This service
-processes transaction histories to generate structured financial health summaries, utilizing PII (Personally
-Identifiable Information) masking to ensure data privacy during external processing.
+### Customer Management
 
-Technical Stack
-Language/Framework: Java 17, Spring Boot 3.3.
+- Create customer profiles
+- Search customers using dynamic criteria
+- Validation for unique identifiers (email, phone, government ID)
 
-ORM: Spring Data JPA with Hibernate 6.
+---
 
-Annotation Processors: MapStruct (Object Mapping), Hibernate MetaModel (Type-safe Queries), Lombok (Boilerplate).
+### Accounts & Transactions
 
-Communication: Reactive WebClient for external API consumption.
+- Accounts linked to customers
+- Credit and debit transactions
+- Internal transfers between accounts
+- Balance consistency enforced at service layer
+- Transfer validation (same-account, insufficient balance, transfer limits)
 
-Validation: Jakarta Bean Validation for strict input enforcement.
+---
+
+### Transaction Model
+
+- Transactions persisted as first-class domain objects
+- Transaction types supported (CREDIT, DEBIT, TRANSFER)
+- Transaction status enum defined (foundation for lifecycle handling)
+
+---
+
+### Advanced Querying
+
+- Dynamic filtering using JPA Specifications
+- Criteria-based searches for customers and transactions
+- Query layer designed to support pagination extension
+
+---
+
+### AI-Powered Insights
+
+- Aggregation of transaction data
+- Prompt construction for financial analysis
+- Integration with OpenAI using WebClient
+- AI used strictly for insights (read-only analysis)
+
+---
+
+### Email Notifications
+
+- Email service abstraction
+- Asynchronous email sending using `@Async`
+- Triggered by business events
+
+---
+
+### Architecture & Code Quality
+
+- Layered architecture (Controller / Service / Repository)
+- DTO-based APIs (no entity leakage)
+- Bean Validation
+- Transactional service boundaries
+- Centralized exception handling
+- Initial data seeding for development/testing
+
+---
+
+## Current Scope
+
+This project focuses on:
+
+- Business correctness over infrastructure
+- Financial domain modeling
+- Clean service-layer logic
+- Extensibility toward production readiness
+
+Future enhancements (security hardening, observability, deployment, etc.)
+are intentionally separated from the current scope.
+
+---
+
+## Author Notes
+
+This repository is designed to evolve incrementally toward a
+production-grade financial backend while keeping business logic explicit
+and testable.

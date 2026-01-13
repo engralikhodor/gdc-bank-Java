@@ -1,13 +1,11 @@
-package com.alikhdr.bankingApp.controller;
+package com.alikhdr.bankingApp.entity;
 
-import com.alikhdr.bankingApp.entity.RoleOptions;
-import com.alikhdr.bankingApp.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.JdbcTypeCode;
 
 import java.util.UUID;
 
@@ -16,12 +14,13 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "user_credentials")
-public class UserCredentials
+@Table(name = "auth")
+public class Auth
 {
     @Id
-    @GeneratedValue(generator = "UUID")
-    @UuidGenerator
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @JdbcTypeCode(java.sql.Types.VARCHAR)
+    @Column(name = "id", updatable = false, nullable = false, length = 36)
     private UUID id;
 
     @Column(name = "username", unique = true, nullable = false, length = 50)
@@ -35,6 +34,6 @@ public class UserCredentials
     private RoleOptions role;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", unique = true, nullable = false)
-    private User user;
+    @JoinColumn(name = "customer_id", unique = true, nullable = false)
+    private Customer customer;
 }

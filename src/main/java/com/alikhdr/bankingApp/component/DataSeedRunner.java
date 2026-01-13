@@ -2,7 +2,7 @@ package com.alikhdr.bankingApp.component;
 
 import com.alikhdr.bankingApp.dto.TransactionRequest;
 import com.alikhdr.bankingApp.entity.*;
-import com.alikhdr.bankingApp.repository.UserRepository;
+import com.alikhdr.bankingApp.repository.CustomerRepository;
 import com.alikhdr.bankingApp.service.TransactionService;
 import com.alikhdr.bankingApp.utils.AccountUtils;
 import lombok.RequiredArgsConstructor;
@@ -19,20 +19,20 @@ import java.util.Random;
 public class DataSeedRunner implements CommandLineRunner
 {
 
-    private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
     private final TransactionService transactionService;
 
     @Override
     public void run(String... args) throws Exception
     {
         // Prevent duplicate seeding
-        if (userRepository.count() > 0)
+        if (customerRepository.count() > 0)
         {
             return;
         }
 
-        // Create Lebanese Users
-        User charbel = User.builder()
+        // create (Lebanese) customers
+        Customer charbel = Customer.builder()
                 .firstName("Charbel")
                 .lastName("Mansour")
                 .email("charbel.m@bank.lb")
@@ -49,7 +49,7 @@ public class DataSeedRunner implements CommandLineRunner
                 .occupation("Teacher")
                 .build();
 
-        User laila = User.builder()
+        Customer laila = Customer.builder()
                 .firstName("Laila")
                 .lastName("Khoury")
                 .email("laila.k@bank.lb")
@@ -66,7 +66,7 @@ public class DataSeedRunner implements CommandLineRunner
                 .occupation("CEO")
                 .build();
 
-        userRepository.saveAll(List.of(charbel, laila));
+        customerRepository.saveAll(List.of(charbel, laila));
 
         // Generate 30 Transactions for Charbel
         Random random = new Random();

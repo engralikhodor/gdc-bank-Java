@@ -1,6 +1,5 @@
 package com.alikhdr.bankingApp.entity;
 
-import com.alikhdr.bankingApp.controller.UserCredentials;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -20,16 +19,16 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(
-        name = "user", indexes = {
+        name = "customer", indexes = {
         @Index(name = "idx_account_number", columnList = "accountNumber")
 })
 
-public class User
+public class Customer
 {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @JdbcTypeCode(java.sql.Types.VARCHAR)
-    @Column(updatable = false, nullable = false, length = 36)
+    @Column(name = "id", updatable = false, nullable = false, length = 36)
     private UUID id;
 
     @Column(nullable = false)
@@ -97,9 +96,9 @@ public class User
     @Version
     private Long version; // For optimistic locking
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
     private List<Transaction> transactions;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private UserCredentials userCredentials;
+    @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
+    private Auth auth;
 }

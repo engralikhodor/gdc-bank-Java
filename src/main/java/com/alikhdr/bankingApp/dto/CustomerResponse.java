@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 
 // (Response): return data
 @Builder
-public record UserResponse
+public record CustomerResponse
         (
                 String accountName,
                 String accountNumber,
