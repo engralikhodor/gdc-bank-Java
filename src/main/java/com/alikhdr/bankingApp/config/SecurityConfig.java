@@ -28,7 +28,7 @@ public class SecurityConfig
                 .cors(cors -> cors.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/customer").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/customer/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
