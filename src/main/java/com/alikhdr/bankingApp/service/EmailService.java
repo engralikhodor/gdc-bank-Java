@@ -4,5 +4,5 @@ import com.alikhdr.bankingApp.dto.EmailDetailsDTO;
 
 public interface EmailService
 {
-    void sendEmailNotification(EmailDetailsDTO emailDetailsDTO);
+    void sendEmailAlert(EmailDetailsDTO emailDetailsDTO);
 }

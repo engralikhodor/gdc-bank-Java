@@ -1,46 +1,35 @@
 package com.alikhdr.bankingApp.specs;
 
 import com.alikhdr.bankingApp.entity.Transaction;
+import com.alikhdr.bankingApp.entity.TransactionTypeOptions;
 import com.alikhdr.bankingApp.entity.Transaction_;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.math.BigDecimal;
-
 public class TransactionSpecs
 {
-    // EQUAL
-    public static <T> Specification<Transaction>
-    isEquals(String fieldName, T value)
-    {
-        return (root, query, cb) ->
-                value == null ? cb.conjunction() : cb.equal(root.get(fieldName), value);
-    }
 
-    // LIKE
-    public static Specification<Transaction>
-    containsText(String fieldName, String text)
+    public static Specification<Transaction> isEquals(String attribute, String value)
     {
-        return (root, query, cb) ->
+        return (root, query, builder) ->
         {
-            if (text == null || text.isBlank())
-                return cb.conjunction();
-            return cb.like(cb.lower(root.get(fieldName)), "%" + text.toLowerCase() + "%");
+            if (value == null || value.isEmpty())
+            {
+                return builder.conjunction();
+            }
+            return builder.equal(root.get(attribute), value);
         };
     }
 
-    // BETWEEN
-    public static Specification<Transaction>
-    amountBetween(BigDecimal min, BigDecimal max)
+    
+    public static Specification<Transaction> isType(TransactionTypeOptions type)
     {
-        return (root, query, cb) ->
+        return (root, query, builder) ->
         {
-            if (min != null && max != null)
-                return cb.between(root.get(Transaction_.AMOUNT), min, max);
-            if (min != null)
-                return cb.greaterThanOrEqualTo(root.get(Transaction_.AMOUNT), min);
-            if (max != null)
-                return cb.lessThanOrEqualTo(root.get(Transaction_.AMOUNT), max);
-            return cb.conjunction();
+            if (type == null)
+            {
+                return builder.conjunction();
+            }
+            return builder.equal(root.get(Transaction_.TRANSACTION_TYPE), type);
         };
     }
 }

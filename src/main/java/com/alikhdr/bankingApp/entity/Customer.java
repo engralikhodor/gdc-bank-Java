@@ -86,6 +86,9 @@ public class Customer
 
     private LocalDateTime lastLogin;// nullable
 
+    @Column(nullable = false)
+    private String stateOfOrigin;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

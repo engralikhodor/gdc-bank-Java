@@ -71,7 +71,7 @@ public class DataSeedRunner implements CommandLineRunner
         // Generate 30 Transactions for Charbel
         Random random = new Random();
         TransactionStatusOptions[] statuses = {
-                TransactionStatusOptions.SUCCESS,
+                TransactionStatusOptions.COMPLETED,
                 TransactionStatusOptions.PENDING
         };
 

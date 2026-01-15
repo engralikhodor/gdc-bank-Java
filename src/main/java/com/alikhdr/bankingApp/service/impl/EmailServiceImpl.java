@@ -29,7 +29,7 @@ public class EmailServiceImpl implements EmailService
 
     @Override
     @Async
-    public void sendEmailNotification(EmailDetailsDTO emailDetailsDTO)
+    public void sendEmailAlert(EmailDetailsDTO emailDetailsDTO)
     {
         try
         {

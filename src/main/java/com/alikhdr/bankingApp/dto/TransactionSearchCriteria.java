@@ -1,22 +1,10 @@
 package com.alikhdr.bankingApp.dto;
 
-import jakarta.validation.constraints.PositiveOrZero;
-import lombok.Data;
+import com.alikhdr.bankingApp.entity.TransactionTypeOptions;
 
-import java.math.BigDecimal;
-
-// (Filter): search
-@Data
-public class TransactionSearchCriteria
+public record TransactionSearchCriteria(
+        String accountNumber,
+        TransactionTypeOptions transactionType
+)
 {
-    private String type;
-    private String status;
-
-    @PositiveOrZero(message = "Minimum amount cannot be negative")
-    private BigDecimal minAmount;
-
-    @PositiveOrZero(message = "Maximum amount cannot be negative")
-    private BigDecimal maxAmount;
-
-    private String remarks;
 }
