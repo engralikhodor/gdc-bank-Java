@@ -23,8 +23,8 @@ public class TransactionController
     private final TransactionService transactionService;
 
     @GetMapping("/search")
-    public ResponseEntity<GlobalResponse<List<TransactionResponse>>> searchTransactions(
-            @ModelAttribute TransactionSearchCriteria searchCriteria)
+    public ResponseEntity<GlobalResponse<List<TransactionResponse>>>
+    searchTransactions(@ModelAttribute TransactionSearchCriteria searchCriteria)
 
     //@ModelAttribute used for mapping request => object
     {

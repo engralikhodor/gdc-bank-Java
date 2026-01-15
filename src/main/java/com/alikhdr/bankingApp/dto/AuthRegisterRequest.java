@@ -9,7 +9,7 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class AuthRequest
+public class AuthRegisterRequest
 {
     @NotBlank(message = "Username is required.")
     @Size(min = 5, max = 50, message = "Username should be between 5 and 50 characters.")
