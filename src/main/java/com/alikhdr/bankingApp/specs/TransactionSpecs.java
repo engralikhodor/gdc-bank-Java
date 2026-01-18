@@ -7,29 +7,13 @@ import org.springframework.data.jpa.domain.Specification;
 
 public class TransactionSpecs
 {
-
-    public static Specification<Transaction> isEquals(String attribute, String value)
+    public static Specification<Transaction> hasAccountNumber(String accNum)
     {
-        return (root, query, builder) ->
-        {
-            if (value == null || value.isEmpty())
-            {
-                return builder.conjunction();
-            }
-            return builder.equal(root.get(attribute), value);
-        };
+        return GenericSpecs.isEquals(Transaction_.ACCOUNT_NUMBER, accNum);
     }
 
-    
     public static Specification<Transaction> isType(TransactionTypeOptions type)
     {
-        return (root, query, builder) ->
-        {
-            if (type == null)
-            {
-                return builder.conjunction();
-            }
-            return builder.equal(root.get(Transaction_.TRANSACTION_TYPE), type);
-        };
+        return GenericSpecs.isEquals(Transaction_.TRANSACTION_TYPE, type);
     }
 }

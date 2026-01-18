@@ -8,25 +8,20 @@ import java.time.LocalDate;
 
 public class CustomerSpecs
 {
-    public static <T> Specification<Customer>
-    isEquals(String fieldName, T value)
+    public static Specification<Customer> hasEmail(String email)
     {
-        return ((root, query, criteriaBuilder) ->
-                value == null ? criteriaBuilder.conjunction() : criteriaBuilder.equal(root.get(fieldName), value));
+        return GenericSpecs.isEquals(Customer_.EMAIL, email);
+    }
+
+    public static Specification<Customer> hasAccountNumber(String accountNumber)
+    {
+        return GenericSpecs.isEquals(Customer_.ACCOUNT_NUMBER, accountNumber);
     }
 
     public static Specification<Customer> isAbove(Integer minAge)
     {
-        return (root, query, cb) ->
-        {
-            if (minAge == null)
-            {
-                return cb.conjunction(); // no filtering
-            }
-
-            LocalDate cutoffDate = LocalDate.now().minusYears(minAge);
-            return cb.lessThanOrEqualTo(root.get(Customer_.DATE_OF_BIRTH), cutoffDate);
-        };
+        return (root, query, cb) -> minAge == null
+                ? cb.conjunction()
+                : cb.lessThanOrEqualTo(root.get(Customer_.DATE_OF_BIRTH), LocalDate.now().minusYears(minAge));
     }
-
 }

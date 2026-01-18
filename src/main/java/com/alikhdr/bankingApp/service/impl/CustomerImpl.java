@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -215,17 +216,17 @@ public class CustomerImpl implements CustomerService
     public GlobalResponse<List<CustomerResponse>> searchCustomers(CustomerSearchCriteria criteria)
     {
         Specification<Customer> spec = Specification
-                .where(CustomerSpecs.isEquals(Customer_.EMAIL, criteria.getEmail()))
-                .and(CustomerSpecs.isEquals(Customer_.ACCOUNT_NUMBER, criteria.getAccountNumber()))
+                .where(CustomerSpecs.hasEmail(criteria.getEmail()))
+                .and(CustomerSpecs.hasAccountNumber(criteria.getAccountNumber()))
                 .and(CustomerSpecs.isAbove(criteria.getMinAge()));
-
+        
         List<CustomerResponse> results = customerRepository.findAll(spec)
                 .stream()
                 .map(customerMapper::entityToResponse)
                 .collect(Collectors.toList());
 
         return GlobalResponse.<List<CustomerResponse>>builder()
-                .responseCode("200")
+                .responseCode(String.valueOf(HttpStatus.OK.value()))
                 .responseMessage(results.isEmpty() ? "No customers found matching criteria" : "Customers retrieved successfully")
                 .data(results)
                 .build();

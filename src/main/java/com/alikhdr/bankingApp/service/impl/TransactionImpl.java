@@ -4,7 +4,10 @@ import com.alikhdr.bankingApp.dto.TransactionRequest;
 import com.alikhdr.bankingApp.dto.TransactionResponse;
 import com.alikhdr.bankingApp.dto.TransactionSearchCriteria;
 import com.alikhdr.bankingApp.dto.TransferRequest;
-import com.alikhdr.bankingApp.entity.*;
+import com.alikhdr.bankingApp.entity.Customer;
+import com.alikhdr.bankingApp.entity.Transaction;
+import com.alikhdr.bankingApp.entity.TransactionStatusOptions;
+import com.alikhdr.bankingApp.entity.TransactionTypeOptions;
 import com.alikhdr.bankingApp.exception.AccountNotFoundException;
 import com.alikhdr.bankingApp.exception.ExceedsTransferLimitException;
 import com.alikhdr.bankingApp.exception.InsufficientResourcesException;
@@ -52,7 +55,7 @@ public class TransactionImpl implements TransactionService
     public List<TransactionResponse> searchTransactions(TransactionSearchCriteria searchDTO)
     {
         Specification<Transaction> spec = Specification
-                .where(TransactionSpecs.isEquals(Transaction_.ACCOUNT_NUMBER, searchDTO.accountNumber()))
+                .where(TransactionSpecs.hasAccountNumber(searchDTO.accountNumber()))
                 .and(TransactionSpecs.isType(searchDTO.transactionType()));
 
         return transactionRepository.findAll(spec)

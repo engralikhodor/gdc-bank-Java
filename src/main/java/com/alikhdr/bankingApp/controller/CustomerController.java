@@ -54,7 +54,7 @@ public class CustomerController
     }
 
     @GetMapping("/search")
-    public GlobalResponse<List<CustomerResponse>> searchCustomer(@ModelAttribute CustomerSearchCriteria criteria)
+    public GlobalResponse<List<CustomerResponse>> searchCustomers(@ModelAttribute CustomerSearchCriteria criteria)
     {
         return customerService.searchCustomers(criteria);
     }
