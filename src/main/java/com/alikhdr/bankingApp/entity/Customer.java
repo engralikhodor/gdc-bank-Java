@@ -20,7 +20,7 @@ import java.util.UUID;
 @Entity
 @Table(
         name = "customer", indexes = {
-        @Index(name = "idx_account_number", columnList = "accountNumber")
+        @Index(name = "idx_account_number", columnList = "account_number")
 })
 
 public class Customer
@@ -48,7 +48,7 @@ public class Customer
 
     private String address;// nullable (optional)
 
-    @Column(unique = true, nullable = false, length = 10)
+    @Column(name = "account_number", unique = true, nullable = false, length = 10)
     private String accountNumber;
 
     @Column(nullable = false)
@@ -85,9 +85,6 @@ public class Customer
     private boolean isEmailVerified = false;// nullable
 
     private LocalDateTime lastLogin;// nullable
-
-    @Column(nullable = false)
-    private String stateOfOrigin;
 
     @CreationTimestamp
     @Column(updatable = false)

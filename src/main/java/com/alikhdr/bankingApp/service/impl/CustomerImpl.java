@@ -62,7 +62,6 @@ public class CustomerImpl implements CustomerService
                 .otherName(customerRequest.getOtherName())
                 .gender(customerRequest.getGender())
                 .address(customerRequest.getAddress())
-                .stateOfOrigin(customerRequest.getStateOfOrigin())
                 .accountNumber(AccountUtils.generateAccountNumber())
                 .accountBalance(BigDecimal.ZERO)
                 .email(customerRequest.getEmail())
@@ -219,7 +218,7 @@ public class CustomerImpl implements CustomerService
                 .where(CustomerSpecs.hasEmail(criteria.getEmail()))
                 .and(CustomerSpecs.hasAccountNumber(criteria.getAccountNumber()))
                 .and(CustomerSpecs.isAbove(criteria.getMinAge()));
-        
+
         List<CustomerResponse> results = customerRepository.findAll(spec)
                 .stream()
                 .map(customerMapper::entityToResponse)

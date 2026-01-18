@@ -55,9 +55,6 @@ public class CustomerRequest
     @NotBlank(message = "Occupation is required")
     private String occupation;
 
-    @NotBlank(message = "State of origin is required")
-    private String stateOfOrigin;
-
     // accountBalance, accountNumber, dailyTransferLimit, baseCurrency and status fields not to be set here
     // they will be set in UserServiceImpl
 }
