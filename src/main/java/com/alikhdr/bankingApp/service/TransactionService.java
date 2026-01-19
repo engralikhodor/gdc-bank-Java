@@ -8,7 +8,7 @@ public interface TransactionService
 {
     void saveTransaction(TransactionRequest request);
 
-    List<TransactionResponse> searchTransactions(TransactionSearchCriteria searchDTO);
+    GlobalResponse<List<TransactionResponse>> searchTransactions(TransactionSearchCriteria searchDTO);
 
     GlobalResponse<TransactionResponse> transfer(TransferRequest request);
 }

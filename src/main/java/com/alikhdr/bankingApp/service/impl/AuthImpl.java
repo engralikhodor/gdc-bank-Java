@@ -45,24 +45,23 @@ public class AuthImpl implements AuthService
             throw new UsernameAlreadyUsedException();
         }
 
-        // Map using the now available nested object
         Customer customer = customerMapper.requestToEntity(request.getCustomerRequest());
 
-        // Set banking defaults
+        //  set defaults
         customer.setAccountNumber(AccountUtils.generateAccountNumber());
         customer.setAccountBalance(BigDecimal.ZERO);
         customer.setStatus(AccountStatusOptions.ACTIVE);
 
-        // Map Auth
+        // map auth
         Auth auth = authMapper.requestToEntity(request);
         auth.setPassword(passwordEncoder.encode(request.getPassword()));
         auth.setRole(request.getRole());
 
-        // Link both sides (Bi-directional)
+        // link both sides (Bi-directional)
         customer.setAuth(auth);
         auth.setCustomer(customer);
 
-        // Save (Cascade saves Auth)
+        // save (Cascade saves Auth)
         customerRepository.save(customer);
 
         return GlobalResponse.<AuthResponse>builder()

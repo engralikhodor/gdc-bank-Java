@@ -33,7 +33,7 @@ public class TransactionController
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<TransactionResponse>> search(@Valid @ModelAttribute TransactionSearchCriteria criteria)
+    public ResponseEntity<GlobalResponse<List<TransactionResponse>>> search(@Valid @ModelAttribute TransactionSearchCriteria criteria)
     {
         return ResponseEntity.ok(transactionService.searchTransactions(criteria));
     }

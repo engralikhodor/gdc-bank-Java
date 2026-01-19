@@ -19,10 +19,12 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +39,6 @@ public class TransactionImpl implements TransactionService
     @Override
     public void saveTransaction(TransactionRequest request)
     {
-        // Fetch the customer using the ID from the request
         Customer customer = customerRepository.findById(request.getCustomerID())
                 .orElseThrow(AccountNotFoundException::new);
 
@@ -54,13 +55,22 @@ public class TransactionImpl implements TransactionService
     }
 
     @Override
-    public List<TransactionResponse> searchTransactions(TransactionSearchCriteria searchDTO)
+    public GlobalResponse<List<TransactionResponse>> searchTransactions(TransactionSearchCriteria searchDTO)
     {
-        Specification<Transaction> spec = TransactionSpecs.withCriteria(searchDTO);
-        return transactionRepository.findAll(spec)
+        Specification<Transaction> spec = Specification
+                .where(TransactionSpecs.hasAccountNumber(searchDTO.accountNumber()))
+                .and(TransactionSpecs.isType(searchDTO.transactionType()));
+
+        List<TransactionResponse> results = transactionRepository.findAll(spec)
                 .stream()
                 .map(transactionMapper::entityToResponse)
-                .toList();
+                .collect(Collectors.toList());
+
+        return GlobalResponse.<List<TransactionResponse>>builder()
+                .responseCode(String.valueOf(HttpStatus.OK.value()))
+                .responseMessage(results.isEmpty() ? "No transactions found matching criteria" : "Transactions retrieved successfully")
+                .data(results)
+                .build();
     }
 
     @Override
