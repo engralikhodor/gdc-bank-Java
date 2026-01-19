@@ -5,10 +5,7 @@ import com.alikhdr.bankingApp.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -17,17 +14,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TransactionController
 {
-
     private final TransactionService transactionService;
 
-    // Existing Transfer endpoint
     @PostMapping("/transfer")
     public ResponseEntity<GlobalResponse<TransactionResponse>> transfer(@Valid @RequestBody TransferRequest request)
     {
         return ResponseEntity.ok(transactionService.transfer(request));
     }
 
-    // NEW: Manual Transaction Creation (using your updated TransactionRequest)
     @PostMapping
     public ResponseEntity<GlobalResponse<Void>> createTransaction(@Valid @RequestBody TransactionRequest request)
     {
@@ -38,8 +32,8 @@ public class TransactionController
                 .build());
     }
 
-    @PostMapping("/search")
-    public ResponseEntity<List<TransactionResponse>> search(@RequestBody TransactionSearchCriteria criteria)
+    @GetMapping("/search")
+    public ResponseEntity<List<TransactionResponse>> search(@Valid @ModelAttribute TransactionSearchCriteria criteria)
     {
         return ResponseEntity.ok(transactionService.searchTransactions(criteria));
     }

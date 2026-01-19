@@ -64,44 +64,45 @@ public class TransactionImpl implements TransactionService
     }
 
     @Override
-    @Transactional // Ensures either both accounts update or none
+    @Transactional // ensure either both accounts update or none
     public GlobalResponse<TransactionResponse> transfer(TransferRequest request)
     {
-        // 1. Validate same account transfer
+        // validate same account transfer
         if (request.getSourceAccountNumber().equals(request.getDestinationAccountNumber()))
         {
             throw new SameAccountTransferException();
         }
 
-        // 2. Fetch Accounts
-        Customer fromCustomer = customerRepository.findByAccountNumber(request.getSourceAccountNumber())
+        // fetch accounts
+        Customer senderCustomer = customerRepository.findByAccountNumber(request.getSourceAccountNumber())
                 .orElseThrow(AccountNotFoundException::new);
 
-        Customer toCustomer = customerRepository.findByAccountNumber(request.getDestinationAccountNumber())
+        Customer receiverCustomer = customerRepository.findByAccountNumber(request.getDestinationAccountNumber())
                 .orElseThrow(AccountNotFoundException::new);
 
         BigDecimal amount = request.getAmountToTransfer();
 
-        // 3. Business Rule Validations
-        if (fromCustomer.getAccountBalance().compareTo(amount) < 0)
+        // check if senderCustomer balance < amount
+        if (senderCustomer.getAccountBalance().compareTo(amount) < 0)
         {
             throw new InsufficientResourcesException();
         }
 
-        if (amount.compareTo(fromCustomer.getDailyTransferLimit()) > 0)
+        // check if senderCustomer balance < DailyTransferLimi
+        if (amount.compareTo(senderCustomer.getDailyTransferLimit()) > 0)
         {
             throw new ExceedsTransferLimitException();
         }
 
-        // 4. Atomic Balance Updates
-        executeBalanceUpdate(fromCustomer, amount, TransactionTypeOptions.DEBIT, request.getRemarks());
-        executeBalanceUpdate(toCustomer, amount, TransactionTypeOptions.CREDIT, request.getRemarks());
+        // update both balances
+        executeBalanceUpdate(senderCustomer, amount, TransactionTypeOptions.DEBIT, request.getRemarks());
+        executeBalanceUpdate(receiverCustomer, amount, TransactionTypeOptions.CREDIT, request.getRemarks());
 
-        log.info("Transfer successful: {} from {} to {}", amount, fromCustomer.getAccountNumber(), toCustomer.getAccountNumber());
+        log.info("Transfer successful: {} from {} to {}", amount, senderCustomer.getAccountNumber(), receiverCustomer.getAccountNumber());
 
         TransactionResponse data = TransactionResponse.builder()
                 .amount(amount)
-                .accountNumber(fromCustomer.getAccountNumber())
+                .accountNumber(senderCustomer.getAccountNumber())
                 .build();
 
         return GlobalResponse.<TransactionResponse>builder()
@@ -124,14 +125,13 @@ public class TransactionImpl implements TransactionService
 
         customerRepository.save(customer);
 
-        // Ensure the customerId is passed correctly here
         this.saveTransaction(TransactionRequest.builder()
                 .amount(amount)
                 .destinationAccountNumber(customer.getAccountNumber())
                 .transactionType(type)
                 .status(TransactionStatusOptions.COMPLETED.name())
                 .remarks(remarks)
-                .customerID(customer.getId()) // Ensure this matches your record field name
+                .customerID(customer.getId())
                 .build());
     }
 }

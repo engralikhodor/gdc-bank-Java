@@ -14,16 +14,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomerController
 {
-
     private final CustomerService customerService;
 
-    @GetMapping("/enquiry")
+    @PostMapping("/enquiry")
     public ResponseEntity<GlobalResponse<String>> nameEnquiry(@Valid @RequestBody EnquiryRequest request)
     {
         return ResponseEntity.ok(customerService.nameEnquiry(request));
     }
 
-    @GetMapping("/balance")
+    @PostMapping("/balance")
     public ResponseEntity<GlobalResponse<CustomerResponse>> balanceEnquiry(@Valid @RequestBody EnquiryRequest request)
     {
         return ResponseEntity.ok(customerService.balanceEnquiry(request));
@@ -41,10 +40,9 @@ public class CustomerController
         return ResponseEntity.ok(customerService.debitAccount(request));
     }
 
-    @PostMapping("/search")
-    public ResponseEntity<GlobalResponse<List<CustomerResponse>>> search(@RequestBody CustomerSearchCriteria criteria)
+    @GetMapping("/search")
+    public ResponseEntity<GlobalResponse<List<CustomerResponse>>> search(@Valid @ModelAttribute CustomerSearchCriteria criteria)
     {
-        // Changed return type to match GlobalResponse<List<CustomerResponse>>
         return ResponseEntity.ok(customerService.searchCustomers(criteria));
     }
 }

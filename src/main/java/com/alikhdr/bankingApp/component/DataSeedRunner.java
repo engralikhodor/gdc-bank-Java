@@ -32,7 +32,6 @@ public class DataSeedRunner implements CommandLineRunner
             return;
         }
 
-        // 1. Create Charbel
         Customer charbel = Customer.builder()
                 .firstName("Charbel")
                 .lastName("Mansour")
@@ -55,11 +54,9 @@ public class DataSeedRunner implements CommandLineRunner
         charbelAuth.setPassword(passwordEncoder.encode("password123"));
         charbelAuth.setRole(RoleOptions.CUSTOMER);
 
-        // Link both sides
         charbelAuth.setCustomer(charbel);
         charbel.setAuth(charbelAuth);
 
-        // 2. Create Laila
         Customer laila = Customer.builder()
                 .firstName("Laila")
                 .lastName("Khoury")
@@ -82,14 +79,13 @@ public class DataSeedRunner implements CommandLineRunner
         lailaAuth.setPassword(passwordEncoder.encode("password123"));
         lailaAuth.setRole(RoleOptions.CUSTOMER);
 
-        // Link both sides
         lailaAuth.setCustomer(laila);
         laila.setAuth(lailaAuth);
 
-        // Save All (Cascade saves Auth objects)
+        // save Auth objects: by Cascade
         customerRepository.saveAll(List.of(charbel, laila));
 
-        // 3. Generate 30 Transactions for Charbel
+        // generate 30 Transactions for Charbel
         Random random = new Random();
         for (int i = 0; i < 30; i++)
         {
