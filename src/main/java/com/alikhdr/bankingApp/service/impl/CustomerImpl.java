@@ -214,9 +214,9 @@ public class CustomerImpl implements CustomerService
         GlobalResponse<TransactionResponse> txGlobalResponse = transactionService.transfer(transferRequest);
         TransactionResponse txResponse = txGlobalResponse.data();
 
-        Customer fromCustomer = customerRepository.findByAccountNumber(transferRequest.getFromAccountNumber())
+        Customer fromCustomer = customerRepository.findByAccountNumber(transferRequest.getSourceAccountNumber())
                 .orElseThrow(() -> new RuntimeException("Customer with account " +
-                        transferRequest.getFromAccountNumber() + " not found"));
+                        transferRequest.getSourceAccountNumber() + " not found"));
 
         return GlobalResponse.<CustomerResponse>builder()
                 .responseCode(AccountUtils.TRANSFER_SUCCESSFUL_CODE)

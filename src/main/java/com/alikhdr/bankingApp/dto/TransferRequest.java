@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 public class TransferRequest
 {
     @NotBlank(message = "The sender's account number can't be empty.")
-    private String fromAccountNumber;
+    private String sourceAccountNumber;
 
     @NotBlank(message = "The recipient's account number can't be empty.")
     private String destinationAccountNumber;

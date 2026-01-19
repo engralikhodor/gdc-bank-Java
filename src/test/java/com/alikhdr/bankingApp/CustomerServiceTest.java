@@ -43,7 +43,7 @@ public class CustomerServiceTest
     {
         // Arrange
         TransferRequest request = TransferRequest.builder()
-                .fromAccountNumber("111")
+                .sourceAccountNumber("111")
                 .destinationAccountNumber("222")
                 .amountToTransfer(new BigDecimal("100.00"))
                 .build();
@@ -78,7 +78,7 @@ public class CustomerServiceTest
     void transferAmount_SameAccount_Failure()
     {
         TransferRequest request = TransferRequest.builder()
-                .fromAccountNumber("111")
+                .sourceAccountNumber("111")
                 .destinationAccountNumber("111")
                 .amountToTransfer(new BigDecimal("200.00"))
                 .build();

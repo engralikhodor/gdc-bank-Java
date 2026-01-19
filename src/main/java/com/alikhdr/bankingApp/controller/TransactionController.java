@@ -1,9 +1,6 @@
 package com.alikhdr.bankingApp.controller;
 
-import com.alikhdr.bankingApp.dto.GlobalResponse;
-import com.alikhdr.bankingApp.dto.TransactionResponse;
-import com.alikhdr.bankingApp.dto.TransactionSearchCriteria;
-import com.alikhdr.bankingApp.dto.TransferRequest;
+import com.alikhdr.bankingApp.dto.*;
 import com.alikhdr.bankingApp.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +20,22 @@ public class TransactionController
 
     private final TransactionService transactionService;
 
+    // Existing Transfer endpoint
     @PostMapping("/transfer")
     public ResponseEntity<GlobalResponse<TransactionResponse>> transfer(@Valid @RequestBody TransferRequest request)
     {
         return ResponseEntity.ok(transactionService.transfer(request));
+    }
+
+    // NEW: Manual Transaction Creation (using your updated TransactionRequest)
+    @PostMapping
+    public ResponseEntity<GlobalResponse<Void>> createTransaction(@Valid @RequestBody TransactionRequest request)
+    {
+        transactionService.saveTransaction(request);
+        return ResponseEntity.ok(GlobalResponse.<Void>builder()
+                .responseCode("201")
+                .responseMessage("Transaction recorded successfully")
+                .build());
     }
 
     @PostMapping("/search")

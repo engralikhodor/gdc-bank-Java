@@ -103,7 +103,7 @@ public class DataSeedRunner implements CommandLineRunner
                     .transactionType(type)
                     .status(TransactionStatusOptions.COMPLETED.name())
                     .remarks("Seed Transaction " + (i + 1))
-                    .customerId(charbel.getId())
+                    .customerID(charbel.getId())
                     .build());
         }
 

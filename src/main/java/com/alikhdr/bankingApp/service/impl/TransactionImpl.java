@@ -38,15 +38,15 @@ public class TransactionImpl implements TransactionService
     public void saveTransaction(TransactionRequest request)
     {
         // Fetch the customer using the ID from the request
-        Customer customer = customerRepository.findById(request.customerId())
+        Customer customer = customerRepository.findById(request.getCustomerID())
                 .orElseThrow(AccountNotFoundException::new);
 
         Transaction transaction = Transaction.builder()
-                .transactionType(request.transactionType())
-                .amount(request.amount())
-                .destinationAccountNumber(request.destinationAccountNumber())
-                .status(TransactionStatusOptions.valueOf(request.status()))
-                .remarks(request.remarks())
+                .transactionType(request.getTransactionType())
+                .amount(request.getAmount())
+                .destinationAccountNumber(request.getDestinationAccountNumber())
+                .status(TransactionStatusOptions.valueOf(request.getStatus()))
+                .remarks(request.getRemarks())
                 .customer(customer)
                 .build();
 
@@ -68,13 +68,13 @@ public class TransactionImpl implements TransactionService
     public GlobalResponse<TransactionResponse> transfer(TransferRequest request)
     {
         // 1. Validate same account transfer
-        if (request.getFromAccountNumber().equals(request.getDestinationAccountNumber()))
+        if (request.getSourceAccountNumber().equals(request.getDestinationAccountNumber()))
         {
             throw new SameAccountTransferException();
         }
 
         // 2. Fetch Accounts
-        Customer fromCustomer = customerRepository.findByAccountNumber(request.getFromAccountNumber())
+        Customer fromCustomer = customerRepository.findByAccountNumber(request.getSourceAccountNumber())
                 .orElseThrow(AccountNotFoundException::new);
 
         Customer toCustomer = customerRepository.findByAccountNumber(request.getDestinationAccountNumber())
@@ -131,7 +131,7 @@ public class TransactionImpl implements TransactionService
                 .transactionType(type)
                 .status(TransactionStatusOptions.COMPLETED.name())
                 .remarks(remarks)
-                .customerId(customer.getId()) // Ensure this matches your record field name
+                .customerID(customer.getId()) // Ensure this matches your record field name
                 .build());
     }
 }

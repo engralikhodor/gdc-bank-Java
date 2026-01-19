@@ -9,7 +9,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface TransactionMapper
 {
-
     // Entity -> Response (Read)
     TransactionResponse entityToResponse(Transaction transaction);
 
