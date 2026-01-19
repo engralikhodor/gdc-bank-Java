@@ -4,11 +4,12 @@ import com.alikhdr.bankingApp.dto.AuthLoginRequest;
 import com.alikhdr.bankingApp.dto.AuthRegisterRequest;
 import com.alikhdr.bankingApp.dto.AuthResponse;
 import com.alikhdr.bankingApp.dto.GlobalResponse;
+import com.alikhdr.bankingApp.entity.AccountStatusOptions;
 import com.alikhdr.bankingApp.entity.Auth;
 import com.alikhdr.bankingApp.entity.Customer;
-import com.alikhdr.bankingApp.entity.RoleOptions;
 import com.alikhdr.bankingApp.exception.UsernameAlreadyUsedException;
 import com.alikhdr.bankingApp.mapper.AuthMapper;
+import com.alikhdr.bankingApp.mapper.CustomerMapper;
 import com.alikhdr.bankingApp.repository.AuthRepository;
 import com.alikhdr.bankingApp.repository.CustomerRepository;
 import com.alikhdr.bankingApp.service.AuthService;
@@ -16,12 +17,12 @@ import com.alikhdr.bankingApp.service.JwtService;
 import com.alikhdr.bankingApp.utils.AccountUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -33,45 +34,45 @@ public class AuthImpl implements AuthService
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final CustomerMapper customerMapper;
 
     @Override
     @Transactional
-    public GlobalResponse<AuthResponse> register(AuthRegisterRequest authRegisterRequest)
+    public GlobalResponse<AuthResponse> register(AuthRegisterRequest request)
     {
-
-        // check if username is taken
-        if (authRepository.existsByUsername(authRegisterRequest.getUsername()))
+        if (authRepository.existsByUsername(request.getUsername()))
         {
             throw new UsernameAlreadyUsedException();
         }
 
-        // retrieve User
-        Customer customer = customerRepository.findById(authRegisterRequest.getCustomer_id())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        // Map using the now available nested object
+        Customer customer = customerMapper.requestToEntity(request.getCustomerRequest());
 
-        // check if this user already has credentials
-        if (authRepository.existsByCustomer(customer))
-        {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User already has registered credentials");
-        }
+        // Set banking defaults
+        customer.setAccountNumber(AccountUtils.generateAccountNumber());
+        customer.setAccountBalance(BigDecimal.ZERO);
+        customer.setStatus(AccountStatusOptions.ACTIVE);
 
-        Auth newAuth = authMapper.requestToEntity(authRegisterRequest);
-        newAuth.setCustomer(customer);
-        newAuth.setRole(RoleOptions.CUSTOMER);
+        // Map Auth
+        Auth auth = authMapper.requestToEntity(request);
+        auth.setPassword(passwordEncoder.encode(request.getPassword()));
+        auth.setRole(request.getRole());
 
-        newAuth.setPassword(passwordEncoder.encode(authRegisterRequest.getPassword()));
+        // Link both sides (Bi-directional)
+        customer.setAuth(auth);
+        auth.setCustomer(customer);
 
-        authRepository.save(newAuth);
-
-        AuthResponse data = AuthResponse.builder()
-                .firstName(customer.getFirstName())
-                .accountNumber(customer.getAccountNumber())
-                .build();
+        // Save (Cascade saves Auth)
+        customerRepository.save(customer);
 
         return GlobalResponse.<AuthResponse>builder()
-                .responseCode(AccountUtils.USERNAME_CREATED_SUCCESSFULLY_CODE)
-                .responseMessage(AccountUtils.USERNAME_CREATED_SUCCESSFULLY)
-                .data(data)
+                .responseCode("201")
+                .responseMessage("User registered successfully")
+                .data(AuthResponse.builder()
+                        .username(auth.getUsername())
+                        .accountNumber(customer.getAccountNumber())
+                        .firstName(customer.getFirstName())
+                        .build())
                 .build();
     }
 

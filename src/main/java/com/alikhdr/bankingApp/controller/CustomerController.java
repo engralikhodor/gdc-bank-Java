@@ -2,60 +2,49 @@ package com.alikhdr.bankingApp.controller;
 
 import com.alikhdr.bankingApp.dto.*;
 import com.alikhdr.bankingApp.service.CustomerService;
-import com.alikhdr.bankingApp.utils.AccountUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/customer")
+@RequestMapping("/api/v1/customers")
 @RequiredArgsConstructor
 public class CustomerController
 {
 
     private final CustomerService customerService;
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public GlobalResponse<CustomerResponse> openInitialAccount(@Valid @RequestBody CustomerRequest request)
+    @GetMapping("/enquiry")
+    public ResponseEntity<GlobalResponse<String>> nameEnquiry(@Valid @RequestBody EnquiryRequest request)
     {
-        return GlobalResponse.<CustomerResponse>builder()
-                .responseCode(String.valueOf(HttpStatus.CREATED.value()))
-                .responseMessage(AccountUtils.CUSTOMER_CREATED_SUCCESSFULLY)
-                .data(customerService.openInitialAccount(request))
-                .build();
+        return ResponseEntity.ok(customerService.nameEnquiry(request));
     }
 
-    @GetMapping("/nameEnquiry")
-    public GlobalResponse<String> nameEnquiry(@RequestBody EnquiryRequest enquiryRequest)
+    @GetMapping("/balance")
+    public ResponseEntity<GlobalResponse<CustomerResponse>> balanceEnquiry(@Valid @RequestBody EnquiryRequest request)
     {
-        return customerService.nameEnquiry(enquiryRequest);
-    }
-
-    @PostMapping("/balanceEnquiry")
-    public GlobalResponse<CustomerResponse> balanceEnquiry(@RequestBody EnquiryRequest request)
-    {
-        return customerService.balanceEnquiry(request);
+        return ResponseEntity.ok(customerService.balanceEnquiry(request));
     }
 
     @PostMapping("/credit")
-    public GlobalResponse<CustomerResponse> creditAccount(@Valid @RequestBody CreditDebitRequest request)
+    public ResponseEntity<GlobalResponse<CustomerResponse>> credit(@Valid @RequestBody CreditDebitRequest request)
     {
-        return customerService.creditAccount(request);
+        return ResponseEntity.ok(customerService.creditAccount(request));
     }
 
     @PostMapping("/debit")
-    public GlobalResponse<CustomerResponse> debitAccount(@Valid @RequestBody CreditDebitRequest request)
+    public ResponseEntity<GlobalResponse<CustomerResponse>> debit(@Valid @RequestBody CreditDebitRequest request)
     {
-        return customerService.debitAccount(request);
+        return ResponseEntity.ok(customerService.debitAccount(request));
     }
 
-    @GetMapping("/search")
-    public GlobalResponse<List<CustomerResponse>> searchCustomers(@ModelAttribute CustomerSearchCriteria criteria)
+    @PostMapping("/search")
+    public ResponseEntity<GlobalResponse<List<CustomerResponse>>> search(@RequestBody CustomerSearchCriteria criteria)
     {
-        return customerService.searchCustomers(criteria);
+        // Changed return type to match GlobalResponse<List<CustomerResponse>>
+        return ResponseEntity.ok(customerService.searchCustomers(criteria));
     }
 }

@@ -49,7 +49,7 @@ public class Transaction
     @Version
     private Long version; // Optimistic Locking: protect the State of the record
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false) // Ensure transaction always has a customer
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 }

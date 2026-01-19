@@ -7,6 +7,7 @@ import com.alikhdr.bankingApp.service.TransactionService;
 import com.alikhdr.bankingApp.utils.AccountUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -21,17 +22,17 @@ public class DataSeedRunner implements CommandLineRunner
 
     private final CustomerRepository customerRepository;
     private final TransactionService transactionService;
+    private final PasswordEncoder passwordEncoder; // Correctly encode passwords for login
 
     @Override
     public void run(String... args) throws Exception
     {
-        // Prevent duplicate seeding
         if (customerRepository.count() > 0)
         {
             return;
         }
 
-        // create (Lebanese) customers
+        // 1. Create Charbel
         Customer charbel = Customer.builder()
                 .firstName("Charbel")
                 .lastName("Mansour")
@@ -49,6 +50,16 @@ public class DataSeedRunner implements CommandLineRunner
                 .occupation("Teacher")
                 .build();
 
+        Auth charbelAuth = new Auth();
+        charbelAuth.setUsername("charbel_m");
+        charbelAuth.setPassword(passwordEncoder.encode("password123"));
+        charbelAuth.setRole(RoleOptions.CUSTOMER);
+
+        // Link both sides
+        charbelAuth.setCustomer(charbel);
+        charbel.setAuth(charbelAuth);
+
+        // 2. Create Laila
         Customer laila = Customer.builder()
                 .firstName("Laila")
                 .lastName("Khoury")
@@ -66,31 +77,20 @@ public class DataSeedRunner implements CommandLineRunner
                 .occupation("CEO")
                 .build();
 
-        //  create and link the Auth object
-        Auth charbelAuth = new Auth();
-        charbelAuth.setUsername("charbel_m");
-        charbelAuth.setPassword("encoded_password");
-        charbelAuth.setRole(RoleOptions.CUSTOMER);
-        charbelAuth.setCustomer(charbel);
-        charbel.setAuth(charbelAuth);
-
-        //  create and link the Auth object
         Auth lailaAuth = new Auth();
-        lailaAuth.setUsername("charbel_m");
-        lailaAuth.setPassword("encoded_password");
+        lailaAuth.setUsername("laila_k"); // Fixed username
+        lailaAuth.setPassword(passwordEncoder.encode("password123"));
         lailaAuth.setRole(RoleOptions.CUSTOMER);
-        lailaAuth.setCustomer(charbel);
-        charbel.setAuth(lailaAuth);
 
+        // Link both sides
+        lailaAuth.setCustomer(laila);
+        laila.setAuth(lailaAuth);
+
+        // Save All (Cascade saves Auth objects)
         customerRepository.saveAll(List.of(charbel, laila));
 
-        // Generate 30 Transactions for Charbel
+        // 3. Generate 30 Transactions for Charbel
         Random random = new Random();
-        TransactionStatusOptions[] statuses = {
-                TransactionStatusOptions.COMPLETED,
-                TransactionStatusOptions.PENDING
-        };
-
         for (int i = 0; i < 30; i++)
         {
             BigDecimal amount = BigDecimal.valueOf(20 + (1480 * random.nextDouble()));
@@ -101,8 +101,9 @@ public class DataSeedRunner implements CommandLineRunner
                     .destinationAccountNumber(charbel.getAccountNumber())
                     .amount(amount)
                     .transactionType(type)
-                    .status(String.valueOf(statuses[random.nextInt(statuses.length)]))
-                    .customerId(charbel.getId()) // Add the ID so the service can link the transaction to Charbel
+                    .status(TransactionStatusOptions.COMPLETED.name())
+                    .remarks("Seed Transaction " + (i + 1))
+                    .customerId(charbel.getId())
                     .build());
         }
 

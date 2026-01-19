@@ -1,10 +1,7 @@
 package com.alikhdr.bankingApp.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,6 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Builder
 @Table(name = "auth")
 public class Auth implements UserDetails
 {
@@ -38,9 +36,7 @@ public class Auth implements UserDetails
     @Enumerated(EnumType.STRING)
     private RoleOptions role;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    //    @MapsId  to use only if we want Auth ID to match Customer ID
-    @JoinColumn(name = "customer_id")
+    @OneToOne(mappedBy = "auth")
     private Customer customer;
 
     @Override

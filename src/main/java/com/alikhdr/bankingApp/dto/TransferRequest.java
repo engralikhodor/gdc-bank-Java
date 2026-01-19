@@ -20,7 +20,7 @@ public class TransferRequest
     private String fromAccountNumber;
 
     @NotBlank(message = "The recipient's account number can't be empty.")
-    private String toAccountNumber;
+    private String destinationAccountNumber;
 
     private String remarks;
 

@@ -15,8 +15,8 @@ public interface CustomerService
     GlobalResponse<CustomerResponse> debitAccount(CreditDebitRequest creditDebitRequest);
 
     GlobalResponse<CustomerResponse> transferAmount(TransferRequest transferRequest);
+    
+    GlobalResponse<String> nameEnquiry(EnquiryRequest enquiryRequest);
 
     GlobalResponse<List<CustomerResponse>> searchCustomers(CustomerSearchCriteria customerSearchCriteria);
-
-    GlobalResponse<String> nameEnquiry(EnquiryRequest enquiryRequest);
 }

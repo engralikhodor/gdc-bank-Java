@@ -1,9 +1,6 @@
 package com.alikhdr.bankingApp.service.impl;
 
-import com.alikhdr.bankingApp.dto.TransactionRequest;
-import com.alikhdr.bankingApp.dto.TransactionResponse;
-import com.alikhdr.bankingApp.dto.TransactionSearchCriteria;
-import com.alikhdr.bankingApp.dto.TransferRequest;
+import com.alikhdr.bankingApp.dto.*;
 import com.alikhdr.bankingApp.entity.Customer;
 import com.alikhdr.bankingApp.entity.Transaction;
 import com.alikhdr.bankingApp.entity.TransactionStatusOptions;
@@ -26,27 +23,27 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class TransactionImpl implements TransactionService
 {
+
     private final TransactionRepository transactionRepository;
-    private final TransactionMapper transactionMapper;
     private final CustomerRepository customerRepository;
+    private final TransactionMapper transactionMapper;
 
     @Override
     public void saveTransaction(TransactionRequest request)
     {
-        Customer customer = customerRepository.findByAccountNumber(request.destinationAccountNumber())
-                .orElseThrow(() -> new RuntimeException("Customer with account " +
-                        request.destinationAccountNumber() + " not found"));
+        // Fetch the customer using the ID from the request
+        Customer customer = customerRepository.findById(request.customerId())
+                .orElseThrow(AccountNotFoundException::new);
 
         Transaction transaction = Transaction.builder()
-                .amount(request.amount())
                 .transactionType(request.transactionType())
+                .amount(request.amount())
                 .destinationAccountNumber(request.destinationAccountNumber())
                 .status(TransactionStatusOptions.valueOf(request.status()))
                 .remarks(request.remarks())
@@ -59,69 +56,63 @@ public class TransactionImpl implements TransactionService
     @Override
     public List<TransactionResponse> searchTransactions(TransactionSearchCriteria searchDTO)
     {
-        Specification<Transaction> spec = Specification
-                .where(TransactionSpecs.hasAccountNumber(searchDTO.accountNumber()))
-                .and(TransactionSpecs.isType(searchDTO.transactionType()));
-
+        Specification<Transaction> spec = TransactionSpecs.withCriteria(searchDTO);
         return transactionRepository.findAll(spec)
                 .stream()
                 .map(transactionMapper::entityToResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
-    @Transactional
-    public TransactionResponse transferAmount(TransferRequest transferRequest)
+    @Transactional // Ensures either both accounts update or none
+    public GlobalResponse<TransactionResponse> transfer(TransferRequest request)
     {
-        if (transferRequest.getFromAccountNumber().equals(transferRequest.getToAccountNumber()))
+        // 1. Validate same account transfer
+        if (request.getFromAccountNumber().equals(request.getDestinationAccountNumber()))
         {
             throw new SameAccountTransferException();
         }
 
-        Customer fromCustomer = customerRepository.findByAccountNumber(transferRequest.getFromAccountNumber())
-                .orElseThrow(() -> new RuntimeException("Customer with account " +
-                        transferRequest.getFromAccountNumber() + " not found"));
+        // 2. Fetch Accounts
+        Customer fromCustomer = customerRepository.findByAccountNumber(request.getFromAccountNumber())
+                .orElseThrow(AccountNotFoundException::new);
 
-        ;
-        Customer toCustomer = customerRepository.findByAccountNumber(transferRequest.getToAccountNumber())
-                .orElseThrow(() -> new RuntimeException("Customer with account " +
-                        transferRequest.getToAccountNumber() + " not found"));
-        ;
+        Customer toCustomer = customerRepository.findByAccountNumber(request.getDestinationAccountNumber())
+                .orElseThrow(AccountNotFoundException::new);
 
-        if (fromCustomer == null || toCustomer == null)
-        {
-            throw new AccountNotFoundException();
-        }
+        BigDecimal amount = request.getAmountToTransfer();
 
-        BigDecimal amount = transferRequest.getAmountToTransfer();
-
-        if (amount.compareTo(AccountUtils.DEFAULT_TRANSFER_LIMIT) > 0)
-        {
-            throw new ExceedsTransferLimitException();
-        }
-
+        // 3. Business Rule Validations
         if (fromCustomer.getAccountBalance().compareTo(amount) < 0)
         {
             throw new InsufficientResourcesException();
         }
 
-        executeBalanceUpdate(fromCustomer.getAccountNumber(), amount, TransactionTypeOptions.DEBIT, transferRequest.getRemarks());
-        executeBalanceUpdate(toCustomer.getAccountNumber(), amount, TransactionTypeOptions.CREDIT, transferRequest.getRemarks());
+        if (amount.compareTo(fromCustomer.getDailyTransferLimit()) > 0)
+        {
+            throw new ExceedsTransferLimitException();
+        }
 
-        log.info("Transfer successful: {} moved from {} to {}", amount, fromCustomer.getAccountNumber(), toCustomer.getAccountNumber());
+        // 4. Atomic Balance Updates
+        executeBalanceUpdate(fromCustomer, amount, TransactionTypeOptions.DEBIT, request.getRemarks());
+        executeBalanceUpdate(toCustomer, amount, TransactionTypeOptions.CREDIT, request.getRemarks());
 
-        return TransactionResponse.builder()
+        log.info("Transfer successful: {} from {} to {}", amount, fromCustomer.getAccountNumber(), toCustomer.getAccountNumber());
+
+        TransactionResponse data = TransactionResponse.builder()
                 .amount(amount)
                 .accountNumber(fromCustomer.getAccountNumber())
                 .build();
+
+        return GlobalResponse.<TransactionResponse>builder()
+                .responseCode(AccountUtils.TRANSFER_SUCCESSFUL_CODE)
+                .responseMessage(AccountUtils.TRANSFER_SUCCESSFUL_MESSAGE)
+                .data(data)
+                .build();
     }
 
-    private void executeBalanceUpdate(String accountNumber, BigDecimal amount, TransactionTypeOptions type, String remarks)
+    private void executeBalanceUpdate(Customer customer, BigDecimal amount, TransactionTypeOptions type, String remarks)
     {
-        Customer customer = customerRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new RuntimeException("Customer with account " +
-                        accountNumber + " not found"));
-
         if (type == TransactionTypeOptions.CREDIT)
         {
             customer.setAccountBalance(customer.getAccountBalance().add(amount));
@@ -133,12 +124,14 @@ public class TransactionImpl implements TransactionService
 
         customerRepository.save(customer);
 
+        // Ensure the customerId is passed correctly here
         this.saveTransaction(TransactionRequest.builder()
                 .amount(amount)
-                .destinationAccountNumber(accountNumber)
+                .destinationAccountNumber(customer.getAccountNumber())
                 .transactionType(type)
                 .status(TransactionStatusOptions.COMPLETED.name())
                 .remarks(remarks)
+                .customerId(customer.getId()) // Ensure this matches your record field name
                 .build());
     }
 }

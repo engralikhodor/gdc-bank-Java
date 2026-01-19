@@ -99,6 +99,9 @@ public class Customer
     @OneToMany(mappedBy = "customer", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Transaction> transactions;
 
-    @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "auth_id", referencedColumnName = "id", nullable = false)
     private Auth auth;
+    //    @MapsId  to use only if we want Auth ID to match Customer ID
+
 }

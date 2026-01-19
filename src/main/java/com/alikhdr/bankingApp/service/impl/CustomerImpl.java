@@ -210,16 +210,17 @@ public class CustomerImpl implements CustomerService
     @Override
     public GlobalResponse<CustomerResponse> transferAmount(TransferRequest transferRequest)
     {
-        TransactionResponse txResponse = transactionService.transferAmount(transferRequest);
+        // Access the data inside the GlobalResponse wrapper
+        GlobalResponse<TransactionResponse> txGlobalResponse = transactionService.transfer(transferRequest);
+        TransactionResponse txResponse = txGlobalResponse.data();
 
         Customer fromCustomer = customerRepository.findByAccountNumber(transferRequest.getFromAccountNumber())
                 .orElseThrow(() -> new RuntimeException("Customer with account " +
                         transferRequest.getFromAccountNumber() + " not found"));
-        ;
 
         return GlobalResponse.<CustomerResponse>builder()
-                .responseCode(AccountUtils.AMOUNT_TRANSFERRED_CODE)
-                .responseMessage(AccountUtils.AMOUNT_TRANSFERRED_SUCCESSFULLY)
+                .responseCode(AccountUtils.TRANSFER_SUCCESSFUL_CODE)
+                .responseMessage(AccountUtils.TRANSFER_SUCCESSFUL_MESSAGE)
                 .data(customerMapper.entityToResponse(fromCustomer))
                 .build();
     }

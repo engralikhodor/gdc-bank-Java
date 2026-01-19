@@ -1,9 +1,6 @@
 package com.alikhdr.bankingApp.service;
 
-import com.alikhdr.bankingApp.dto.TransactionRequest;
-import com.alikhdr.bankingApp.dto.TransactionResponse;
-import com.alikhdr.bankingApp.dto.TransactionSearchCriteria;
-import com.alikhdr.bankingApp.dto.TransferRequest;
+import com.alikhdr.bankingApp.dto.*;
 
 import java.util.List;
 
@@ -13,5 +10,5 @@ public interface TransactionService
 
     List<TransactionResponse> searchTransactions(TransactionSearchCriteria searchDTO);
 
-    TransactionResponse transferAmount(TransferRequest request);
+    GlobalResponse<TransactionResponse> transfer(TransferRequest request);
 }

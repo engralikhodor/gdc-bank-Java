@@ -10,6 +10,14 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
+/**
+ * <p>
+ * firstName, lastName, otherName,<br>
+ * gender, nationality, address,<br>
+ * email, phoneNumber, alternativePhoneNumber,<br>
+ * dateOfBirth, governmentId, occupation
+ * </p>
+ */
 @Data
 @Builder
 @AllArgsConstructor

@@ -7,27 +7,30 @@ import com.alikhdr.bankingApp.dto.GlobalResponse;
 import com.alikhdr.bankingApp.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/auth/")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController
 {
+
     private final AuthService authService;
 
     @PostMapping("/register")
-    public GlobalResponse<AuthResponse> register(@Valid @RequestBody AuthRegisterRequest authRegisterRequest)
+    public ResponseEntity<GlobalResponse<AuthResponse>> register(@Valid @RequestBody AuthRegisterRequest request)
     {
-        return authService.register(authRegisterRequest);
+        return new ResponseEntity<>(authService.register(request), HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public GlobalResponse<AuthResponse> login(@Valid @RequestBody AuthLoginRequest authLoginRequest)
+    public ResponseEntity<GlobalResponse<AuthResponse>> login(@Valid @RequestBody AuthLoginRequest request)
     {
-        return authService.login(authLoginRequest);
+        return ResponseEntity.ok(authService.login(request));
     }
 }

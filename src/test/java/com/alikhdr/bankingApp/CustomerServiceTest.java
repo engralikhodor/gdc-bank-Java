@@ -44,7 +44,7 @@ public class CustomerServiceTest
         // Arrange
         TransferRequest request = TransferRequest.builder()
                 .fromAccountNumber("111")
-                .toAccountNumber("222")
+                .destinationAccountNumber("222")
                 .amountToTransfer(new BigDecimal("100.00"))
                 .build();
 
@@ -63,14 +63,14 @@ public class CustomerServiceTest
                 .amount(new BigDecimal("100.00"))
                 .build();
 
-        when(transactionService.transferAmount(any(TransferRequest.class))).thenReturn(mockTxResponse);
+        when(transactionService.transfer(any(TransferRequest.class))).thenReturn(mockTxResponse);
 
         // Act
         GlobalResponse<CustomerResponse> response = customerService.transferAmount(request);
 
         // Assert
-        assertEquals(AccountUtils.AMOUNT_TRANSFERRED_CODE, response.responseCode());
-        verify(transactionService, times(1)).transferAmount(any(TransferRequest.class));
+        assertEquals(AccountUtils.TRANSFER_SUCCESSFUL_CODE, response.responseCode());
+        verify(transactionService, times(1)).transfer(any(TransferRequest.class));
     }
 
     @Test
@@ -79,14 +79,14 @@ public class CustomerServiceTest
     {
         TransferRequest request = TransferRequest.builder()
                 .fromAccountNumber("111")
-                .toAccountNumber("111")
+                .destinationAccountNumber("111")
                 .amountToTransfer(new BigDecimal("200.00"))
                 .build();
 
         // Business logic throws exception before reaching repo/tx service
         assertThrows(RuntimeException.class, () -> customerService.transferAmount(request));
 
-        verify(transactionService, never()).transferAmount(any());
+        verify(transactionService, never()).transfer(any());
     }
 
     @Test
