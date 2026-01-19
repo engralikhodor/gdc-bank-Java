@@ -11,5 +11,5 @@ public interface TransactionRepository extends
         JpaRepository<Transaction, UUID>,
         JpaSpecificationExecutor<Transaction>
 {
-    List<Transaction> findByAccountNumber(String accountNumber);
+    List<Transaction> findByDestinationAccountNumber(String accountNumber);
 }

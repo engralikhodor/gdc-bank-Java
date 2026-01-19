@@ -36,7 +36,7 @@ public class AiTransactionInsightService
     public AiResponse generateInsightsForAccount(String accountNumber)
     {
         // Fetch transactions from DB
-        List<Transaction> transactions = transactionRepository.findByAccountNumber(accountNumber);
+        List<Transaction> transactions = transactionRepository.findByDestinationAccountNumber(accountNumber);
 
         if (transactions.isEmpty())
         {

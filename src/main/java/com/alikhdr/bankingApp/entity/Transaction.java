@@ -33,7 +33,7 @@ public class Transaction
     private TransactionTypeOptions transactionType;
 
     @Column(nullable = false, length = 10)
-    private String accountNumber;
+    private String destinationAccountNumber;
 
     @Column(length = 100) // nullable
     private String remarks;
@@ -47,9 +47,9 @@ public class Transaction
     private LocalDateTime createdAt;
 
     @Version
-    private Long version; // Optimistic Locking: protect the State of the record (Best Practice)
+    private Long version; // Optimistic Locking: protect the State of the record
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false) // Ensure transaction always has a customer
+    @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 }

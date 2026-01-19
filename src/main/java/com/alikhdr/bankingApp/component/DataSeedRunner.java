@@ -66,6 +66,22 @@ public class DataSeedRunner implements CommandLineRunner
                 .occupation("CEO")
                 .build();
 
+        //  create and link the Auth object
+        Auth charbelAuth = new Auth();
+        charbelAuth.setUsername("charbel_m");
+        charbelAuth.setPassword("encoded_password");
+        charbelAuth.setRole(RoleOptions.CUSTOMER);
+        charbelAuth.setCustomer(charbel);
+        charbel.setAuth(charbelAuth);
+
+        //  create and link the Auth object
+        Auth lailaAuth = new Auth();
+        lailaAuth.setUsername("charbel_m");
+        lailaAuth.setPassword("encoded_password");
+        lailaAuth.setRole(RoleOptions.CUSTOMER);
+        lailaAuth.setCustomer(charbel);
+        charbel.setAuth(lailaAuth);
+
         customerRepository.saveAll(List.of(charbel, laila));
 
         // Generate 30 Transactions for Charbel
@@ -82,10 +98,11 @@ public class DataSeedRunner implements CommandLineRunner
                     TransactionTypeOptions.CREDIT : TransactionTypeOptions.DEBIT;
 
             transactionService.saveTransaction(TransactionRequest.builder()
-                    .accountNumber(charbel.getAccountNumber())
+                    .destinationAccountNumber(charbel.getAccountNumber())
                     .amount(amount)
                     .transactionType(type)
                     .status(String.valueOf(statuses[random.nextInt(statuses.length)]))
+                    .customerId(charbel.getId()) // Add the ID so the service can link the transaction to Charbel
                     .build());
         }
 

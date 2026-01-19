@@ -40,12 +40,17 @@ public class TransactionImpl implements TransactionService
     @Override
     public void saveTransaction(TransactionRequest request)
     {
+        Customer customer = customerRepository.findByAccountNumber(request.destinationAccountNumber())
+                .orElseThrow(() -> new RuntimeException("Customer with account " +
+                        request.destinationAccountNumber() + " not found"));
+
         Transaction transaction = Transaction.builder()
-                .transactionType(request.transactionType())
-                .accountNumber(request.accountNumber())
                 .amount(request.amount())
+                .transactionType(request.transactionType())
+                .destinationAccountNumber(request.destinationAccountNumber())
                 .status(TransactionStatusOptions.valueOf(request.status()))
                 .remarks(request.remarks())
+                .customer(customer)
                 .build();
 
         transactionRepository.save(transaction);
@@ -73,8 +78,15 @@ public class TransactionImpl implements TransactionService
             throw new SameAccountTransferException();
         }
 
-        Customer fromCustomer = customerRepository.findByAccountNumber(transferRequest.getFromAccountNumber());
-        Customer toCustomer = customerRepository.findByAccountNumber(transferRequest.getToAccountNumber());
+        Customer fromCustomer = customerRepository.findByAccountNumber(transferRequest.getFromAccountNumber())
+                .orElseThrow(() -> new RuntimeException("Customer with account " +
+                        transferRequest.getFromAccountNumber() + " not found"));
+
+        ;
+        Customer toCustomer = customerRepository.findByAccountNumber(transferRequest.getToAccountNumber())
+                .orElseThrow(() -> new RuntimeException("Customer with account " +
+                        transferRequest.getToAccountNumber() + " not found"));
+        ;
 
         if (fromCustomer == null || toCustomer == null)
         {
@@ -106,7 +118,9 @@ public class TransactionImpl implements TransactionService
 
     private void executeBalanceUpdate(String accountNumber, BigDecimal amount, TransactionTypeOptions type, String remarks)
     {
-        Customer customer = customerRepository.findByAccountNumber(accountNumber);
+        Customer customer = customerRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new RuntimeException("Customer with account " +
+                        accountNumber + " not found"));
 
         if (type == TransactionTypeOptions.CREDIT)
         {
@@ -121,7 +135,7 @@ public class TransactionImpl implements TransactionService
 
         this.saveTransaction(TransactionRequest.builder()
                 .amount(amount)
-                .accountNumber(accountNumber)
+                .destinationAccountNumber(accountNumber)
                 .transactionType(type)
                 .status(TransactionStatusOptions.COMPLETED.name())
                 .remarks(remarks)

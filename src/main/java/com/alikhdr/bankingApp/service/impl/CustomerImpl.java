@@ -97,7 +97,10 @@ public class CustomerImpl implements CustomerService
             throw new AccountNotFoundException();
         }
 
-        Customer foundCustomer = customerRepository.findByAccountNumber(enquiryRequest.getAccountNumber());
+        Customer foundCustomer = customerRepository.findByAccountNumber(enquiryRequest.getAccountNumber())
+                .orElseThrow(() -> new RuntimeException("Customer with account " +
+                        enquiryRequest.getAccountNumber() + " not found"));
+        ;
 
         return GlobalResponse.<CustomerResponse>builder()
                 .responseCode(AccountUtils.CUSTOMER_FOUND_CODE)
@@ -116,7 +119,10 @@ public class CustomerImpl implements CustomerService
             throw new AccountNotFoundException();
         }
 
-        Customer foundCustomer = customerRepository.findByAccountNumber(enquiryRequest.getAccountNumber());
+        Customer foundCustomer = customerRepository.findByAccountNumber(enquiryRequest.getAccountNumber())
+                .orElseThrow(() -> new RuntimeException("Customer with account " +
+                        enquiryRequest.getAccountNumber() + " not found"));
+
 
         return GlobalResponse.<String>builder()
                 .responseCode(AccountUtils.CUSTOMER_FOUND_CODE)
@@ -129,7 +135,10 @@ public class CustomerImpl implements CustomerService
     @Transactional
     public GlobalResponse<CustomerResponse> creditAccount(CreditDebitRequest request)
     {
-        Customer customerToCredit = customerRepository.findByAccountNumber(request.getAccountNumber());
+        Customer customerToCredit = customerRepository.findByAccountNumber(request.getAccountNumber())
+                .orElseThrow(() -> new RuntimeException("Customer with account " +
+                        request.getAccountNumber() + " not found"));
+        ;
 
         if (customerToCredit == null)
         {
@@ -147,7 +156,7 @@ public class CustomerImpl implements CustomerService
         customerRepository.save(customerToCredit);
 
         transactionService.saveTransaction(TransactionRequest.builder()
-                .accountNumber(customerToCredit.getAccountNumber())
+                .destinationAccountNumber(customerToCredit.getAccountNumber())
                 .transactionType(TransactionTypeOptions.CREDIT)
                 .amount(request.getAmount())
                 .status(TransactionStatusOptions.COMPLETED.name())
@@ -165,7 +174,8 @@ public class CustomerImpl implements CustomerService
     @Transactional
     public GlobalResponse<CustomerResponse> debitAccount(CreditDebitRequest request)
     {
-        Customer customerToDebit = customerRepository.findByAccountNumber(request.getAccountNumber());
+        Customer customerToDebit = customerRepository.findByAccountNumber(request.getAccountNumber()).orElseThrow(() -> new RuntimeException("Customer with account " +
+                request.getAccountNumber() + " not found"));
 
         if (customerToDebit == null)
         {
@@ -183,7 +193,7 @@ public class CustomerImpl implements CustomerService
         customerRepository.save(customerToDebit);
 
         transactionService.saveTransaction(TransactionRequest.builder()
-                .accountNumber(customerToDebit.getAccountNumber())
+                .destinationAccountNumber(customerToDebit.getAccountNumber())
                 .transactionType(TransactionTypeOptions.DEBIT)
                 .amount(request.getAmount())
                 .status(TransactionStatusOptions.COMPLETED.name())
@@ -202,7 +212,10 @@ public class CustomerImpl implements CustomerService
     {
         TransactionResponse txResponse = transactionService.transferAmount(transferRequest);
 
-        Customer fromCustomer = customerRepository.findByAccountNumber(transferRequest.getFromAccountNumber());
+        Customer fromCustomer = customerRepository.findByAccountNumber(transferRequest.getFromAccountNumber())
+                .orElseThrow(() -> new RuntimeException("Customer with account " +
+                        transferRequest.getFromAccountNumber() + " not found"));
+        ;
 
         return GlobalResponse.<CustomerResponse>builder()
                 .responseCode(AccountUtils.AMOUNT_TRANSFERRED_CODE)

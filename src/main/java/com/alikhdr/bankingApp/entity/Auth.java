@@ -38,10 +38,10 @@ public class Auth implements UserDetails
     @Enumerated(EnumType.STRING)
     private RoleOptions role;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "customer_id", unique = true, nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    //    @MapsId  to use only if we want Auth ID to match Customer ID
+    @JoinColumn(name = "customer_id")
     private Customer customer;
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities()

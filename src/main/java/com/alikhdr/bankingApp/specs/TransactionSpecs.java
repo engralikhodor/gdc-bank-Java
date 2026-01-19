@@ -9,7 +9,7 @@ public class TransactionSpecs
 {
     public static Specification<Transaction> hasAccountNumber(String accNum)
     {
-        return GenericSpecs.isEquals(Transaction_.ACCOUNT_NUMBER, accNum);
+        return GenericSpecs.isEquals(Transaction_.DESTINATION_ACCOUNT_NUMBER, accNum);
     }
 
     public static Specification<Transaction> isType(TransactionTypeOptions type)

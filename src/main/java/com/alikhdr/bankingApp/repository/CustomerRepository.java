@@ -4,6 +4,7 @@ import com.alikhdr.bankingApp.entity.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -21,5 +22,5 @@ public interface CustomerRepository
 
     Boolean existsByAccountNumber(String accountNumber);
 
-    Customer findByAccountNumber(String accountNumber);
+    Optional<Customer> findByAccountNumber(String accountNumber);
 }
