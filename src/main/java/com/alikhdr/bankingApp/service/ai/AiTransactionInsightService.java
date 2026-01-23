@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Map;
@@ -102,15 +103,15 @@ public class AiTransactionInsightService
     private String buildPrompt(List<Transaction> transactions)
     {
         String summary = transactions.stream()
-                .map(t -> "Type=" + t.getTransactionType()
-                        + ", Amount=" + t.getAmount()
-                        + ", Status=" + t.getStatus()
-                        + ", Date=" + t.getCreatedAt())
-                .collect(Collectors.joining("\n"));
+                .map(t -> t.getTransactionType() + ": $" + t.getAmount())
+                .collect(Collectors.joining(", "));
 
-        return "You are a banking assistant. Summarize the following transactions for the user in plain language, " +
-                "group credits and debits, and explain the overall status. Do not repeat the raw transaction list:\n" +
-                summary;
+        return "You are a professional banking assistant. Analyze these transactions: " + summary + "\n\n" +
+                "STRICT RULES:\n" +
+                "1. DO NOT list individual transactions or numbers.\n" +
+                "2. Group everything into three short paragraphs: Credits, Debits, and Overall Financial Health.\n" +
+                "3. Use professional currency formatting (e.g. $1,234.56).\n" +
+                "4. Be concise and human-friendly.";
     }
 
     // mask account number for safety
@@ -119,5 +120,42 @@ public class AiTransactionInsightService
         if (accountNumber == null || accountNumber.length() < 4)
             return "****";
         return "****" + accountNumber.substring(accountNumber.length() - 4);
+    }
+
+    public Flux<String> getStreamingInsights(String accountNumber)
+    {
+        List<Transaction> transactions = transactionRepository.findByDestinationAccountNumber(accountNumber);
+        String prompt = buildPrompt(transactions);
+
+        return openAiWebClient.post()
+                .uri("/chat/completions")
+                .bodyValue(Map.of(
+                        "model", "gpt-3.5-turbo",
+                        "messages", List.of(Map.of("role", "user", "content", prompt)),
+                        "stream", true
+                ))
+                .retrieve()
+                .bodyToFlux(String.class)
+                .map(chunk ->
+                {
+                    if (chunk.contains("[DONE]"))
+                        return "";
+                    try
+                    {
+                        ObjectMapper mapper = new ObjectMapper();
+                        // OpenAI sends "data: {...}". We need the JSON part.
+                        String json = chunk.replace("data:", "").trim();
+                        JsonNode node = mapper.readTree(json);
+
+                        // Extract just the text content
+                        JsonNode contentNode = node.path("choices").get(0).path("delta").path("content");
+                        return contentNode.isMissingNode() ? "" : contentNode.asText();
+                    }
+                    catch (Exception e)
+                    {
+                        return ""; // Skip malformed chunks
+                    }
+                })
+                .filter(text -> !text.isEmpty());
     }
 }

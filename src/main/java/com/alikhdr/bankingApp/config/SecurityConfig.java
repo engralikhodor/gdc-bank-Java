@@ -32,51 +32,34 @@ public class SecurityConfig
     {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                // disable CSRF (we're using JWT)
                 .csrf(AbstractHttpConfigurer::disable)
-
-                // define entry rules for endpoints
                 .authorizeHttpRequests(auth -> auth
-                        // public
                         .requestMatchers("/api/v1/auth/**").permitAll()
 
-                        // role-based protection (admin only)
+                        .requestMatchers("/api/v1/ai/transactions/**").permitAll()
+
                         .requestMatchers("/api/v1/customers/search").hasRole("ADMIN")
                         .requestMatchers("/api/v1/transactions/search").hasRole("ADMIN")
-
-                        // everything else requires a valid JWT
                         .anyRequest().authenticated()
                 )
-
-                // set session to stateless
-                // forbid the server from creating "Sessions"
-                // forcing the app to rely 100% on your JWT
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
-                // link provider & filter
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);// check for a JWT first
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // professional CORS Configuration for Angular (localhost:4200)
     @Bean
     public CorsConfigurationSource corsConfigurationSource()
     {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+        configuration.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:5173"));
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-        // allow necessary headers
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cache-Control"));
-
-        // allow the browser to read the Authorization header
         configuration.setExposedHeaders(List.of("Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
