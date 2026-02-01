@@ -23,4 +23,6 @@ public interface CustomerRepository
     Boolean existsByAccountNumber(String accountNumber);
 
     Optional<Customer> findByAccountNumber(String accountNumber);
+
+    Optional<Customer> findByEmail(String username);
 }
