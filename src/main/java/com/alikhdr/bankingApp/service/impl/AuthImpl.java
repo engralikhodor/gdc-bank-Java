@@ -117,7 +117,7 @@ public class AuthImpl implements AuthService
                 .orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
 
         // check if it is still valid (not older than 24 hours)
-        refreshTokenService.verifyExpiration(tokenInDb);
+        refreshTokenService.validateTokenExpiration(tokenInDb);
 
         // get Auth
         Auth auth = tokenInDb.getAuth();
