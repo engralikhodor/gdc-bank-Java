@@ -1,10 +1,7 @@
 package com.alikhdr.bankingApp.service.impl;
 
 import com.alikhdr.bankingApp.dto.*;
-import com.alikhdr.bankingApp.entity.AccountStatusOptions;
-import com.alikhdr.bankingApp.entity.Auth;
-import com.alikhdr.bankingApp.entity.Customer;
-import com.alikhdr.bankingApp.entity.RefreshToken;
+import com.alikhdr.bankingApp.entity.*;
 import com.alikhdr.bankingApp.exception.AccountNotFoundException;
 import com.alikhdr.bankingApp.exception.UsernameAlreadyUsedException;
 import com.alikhdr.bankingApp.mapper.AuthMapper;
@@ -55,6 +52,10 @@ public class AuthImpl implements AuthService
         customer.setAccountBalance(BigDecimal.ZERO);
         customer.setStatus(AccountStatusOptions.ACTIVE);
 
+        // These two were missing and caused the 500 error:
+        customer.setDailyTransferLimit(new BigDecimal("500.00")); // Set a default limit
+        customer.setBaseCurrency(CurrencyOptions.USD); // Set a default currency
+        
         // map auth
         Auth auth = authMapper.requestToEntity(request);
         auth.setPassword(passwordEncoder.encode(request.getPassword()));

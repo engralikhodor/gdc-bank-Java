@@ -43,7 +43,7 @@ public class Auth implements UserDetails
     public Collection<? extends GrantedAuthority> getAuthorities()
     {
         // return the role as a SimpleGrantedAuthority
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override
