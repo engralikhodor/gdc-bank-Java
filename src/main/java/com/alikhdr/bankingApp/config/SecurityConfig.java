@@ -36,7 +36,7 @@ public class SecurityConfig
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
 
-                        .requestMatchers("/api/v1/ai/transactions/**").permitAll()
+                        .requestMatchers("/api/v1/ai/transactions/**").authenticated()
 
                         .requestMatchers("/api/v1/customers/search").hasRole("ADMIN")
                         .requestMatchers("/api/v1/transactions/search").hasRole("ADMIN")
