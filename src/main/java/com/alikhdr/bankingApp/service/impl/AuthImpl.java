@@ -52,10 +52,9 @@ public class AuthImpl implements AuthService
         customer.setAccountBalance(BigDecimal.ZERO);
         customer.setStatus(AccountStatusOptions.ACTIVE);
 
-        // These two were missing and caused the 500 error:
-        customer.setDailyTransferLimit(new BigDecimal("500.00")); // Set a default limit
-        customer.setBaseCurrency(CurrencyOptions.USD); // Set a default currency
-        
+        customer.setDailyTransferLimit(new BigDecimal("500.00"));
+        customer.setBaseCurrency(CurrencyOptions.USD);
+
         // map auth
         Auth auth = authMapper.requestToEntity(request);
         auth.setPassword(passwordEncoder.encode(request.getPassword()));
