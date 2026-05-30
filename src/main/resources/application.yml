@@ -78,3 +78,12 @@ aws:
   secretKey: ${AWS_SECRET_ACCESS_KEY}
   region: eu-north-1
   bucketName: gdc-bank-receipts-s3
+
+finnhub:
+  api:
+    key: d80f15pr01qq9ln3l7v0d80f15pr01qq9ln3l7vg
+
+option:
+  pricing:
+    risk-free-rate: 0.05 # 5%
+    volatility: 0.20 # 20%
