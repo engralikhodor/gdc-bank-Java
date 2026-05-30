@@ -11,8 +11,9 @@ AI-powered transaction insights.
 - Spring Data JPA
 - Spring Security
 - Hibernate
-- WebClient
+- WebClient (for external API calls)
 - OpenAI API
+- Finnhub API (for market data)
 - MySQL (relational database)
 - Async processing (`@Async`)
 
@@ -50,6 +51,15 @@ AI-powered transaction insights.
 - Transactions persisted as first-class domain objects
 - Transaction types supported (CREDIT, DEBIT, TRANSFER)
 - Transaction status enum defined (foundation for lifecycle handling)
+
+---
+
+### Financial Instruments & Market Data
+
+- **Real-time Market Data Integration:** Fetches live stock quotes from the Finnhub API using WebClient.
+- **Option Entity:** Models financial option contracts with properties like underlying symbol, strike price, type (CALL/PUT), and expiration date.
+- **Option Pricing Service:** Implements a simplified Black-Scholes model to calculate the theoretical price of European options, leveraging real-time market data.
+- **Option Management:** REST endpoints for creating, retrieving, and pricing option entities.
 
 ---
 
@@ -94,9 +104,10 @@ AI-powered transaction insights.
 This project focuses on:
 
 - Business correctness over infrastructure
-- Financial domain modeling
+- Financial domain modeling (including basic derivatives)
 - Clean service-layer logic
 - Extensibility toward production readiness
+- Integration with external financial data providers
 
 Future enhancements (security hardening, observability, deployment, etc.)
 are intentionally separated from the current scope.
