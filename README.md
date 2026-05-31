@@ -19,6 +19,25 @@ AI-powered transaction insights.
 
 ---
 
+### Financial Instruments & Market Data
+
+- **Real-time Market Data Integration:** Fetches live stock quotes from the Finnhub API using WebClient.
+- **Option Entity:** Models financial option contracts with properties like underlying symbol, strike price, type (
+  CALL/PUT), and expiration date.
+- **Option Pricing Service:** Implements a simplified Black-Scholes model to calculate the theoretical price of European
+  options, leveraging real-time market data.
+- **Option Management:** REST endpoints for creating, retrieving, and pricing option entities.
+
+---
+
+### Transaction Model
+
+- Transactions persisted as first-class domain objects
+- Transaction types supported (CREDIT, DEBIT, TRANSFER)
+- Transaction status enum defined (foundation for lifecycle handling)
+
+---
+
 ### Authentication & Users
 
 - User registration
@@ -43,23 +62,6 @@ AI-powered transaction insights.
 - Internal transfers between accounts
 - Balance consistency enforced at service layer
 - Transfer validation (same-account, insufficient balance, transfer limits)
-
----
-
-### Transaction Model
-
-- Transactions persisted as first-class domain objects
-- Transaction types supported (CREDIT, DEBIT, TRANSFER)
-- Transaction status enum defined (foundation for lifecycle handling)
-
----
-
-### Financial Instruments & Market Data
-
-- **Real-time Market Data Integration:** Fetches live stock quotes from the Finnhub API using WebClient.
-- **Option Entity:** Models financial option contracts with properties like underlying symbol, strike price, type (CALL/PUT), and expiration date.
-- **Option Pricing Service:** Implements a simplified Black-Scholes model to calculate the theoretical price of European options, leveraging real-time market data.
-- **Option Management:** REST endpoints for creating, retrieving, and pricing option entities.
 
 ---
 
