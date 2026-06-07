@@ -16,14 +16,14 @@ public class CustomerController
 {
     private final CustomerService customerService;
 
-    @PostMapping("/enquiry")
-    public ResponseEntity<GlobalResponse<String>> nameEnquiry(@Valid @RequestBody EnquiryRequest request)
+    @GetMapping("/enquiry/name")
+    public ResponseEntity<GlobalResponse<String>> nameEnquiry(@Valid @ModelAttribute EnquiryRequest request)
     {
         return ResponseEntity.ok(customerService.nameEnquiry(request));
     }
 
-    @PostMapping("/balance")
-    public ResponseEntity<GlobalResponse<CustomerResponse>> balanceEnquiry(@Valid @RequestBody EnquiryRequest request)
+    @GetMapping("/enquiry/balance")
+    public ResponseEntity<GlobalResponse<CustomerResponse>> balanceEnquiry(@Valid @ModelAttribute EnquiryRequest request)
     {
         return ResponseEntity.ok(customerService.balanceEnquiry(request));
     }

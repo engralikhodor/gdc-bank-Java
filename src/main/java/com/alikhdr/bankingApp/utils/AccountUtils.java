@@ -7,7 +7,6 @@ import java.time.Year;
 public class AccountUtils
 {
 
-    public static final String ACCOUNT_EXISTS_CODE = "001";
     public static final String CUSTOMER_EMAIL_ALREADY_EXISTS
             = "Customer with provided email already exists!";
     public static final String CUSTOMER_PHONE_ALREADY_EXISTS
@@ -16,8 +15,6 @@ public class AccountUtils
             = "Customer with provided alternative phone number already exists!";
     public static final String CUSTOMER_GOVERNMENT_ID_ALREADY_EXISTS
             = "Customer with provided government ID already exists!";
-    public static final String CUSTOMER_CREATED_SUCCESSFULLY = "Customer added successfully.";
-    public static final String CUSTOMER_CREATED_SUCCESSFULLY_CODE = "002";
     public static final String CUSTOMER_NOT_FOUND = "Customer not found!";
     public static final String CUSTOMER_NOT_FOUND_CODE = "003";
     public static final String CUSTOMER_FOUND = "Customer found.";
@@ -32,17 +29,13 @@ public class AccountUtils
     public static final String EXCEEDS_TRANSFER_LIMIT_CODE = "008";
     public static final String TRANSFER_SUCCESSFUL_MESSAGE = "Amount transferred successfully.";
     public static final String TRANSFER_SUCCESSFUL_CODE = "009";
-    public static final String TRANSACTION_FOUND_SUCCESSFULLY = "Transaction found successfully.";
-    public static final String TRANSACTION_FOUND_SUCCESSFULLY_CODE = "010";
-    public static final String TRANSACTION_NOT_FOUND = "Transaction not found!";
-    public static final String TRANSACTION_NOT_FOUND_CODE = "011";
     public static final String SAME_ACCOUNT_TRANSFER = "You can't send from-to the same account!";
     public static final String SAME_ACCOUNT_TRANSFER_CODE = "012";
     public static final String USERNAME_ALREADY_TAKEN = "Username already taken!";
     public static final String USERNAME_ALREADY_TAKEN_CODE = "013";
-    public static final String USERNAME_CREATED_SUCCESSFULLY = "Username created successfully.";
-    public static final String USERNAME_CREATED_SUCCESSFULLY_CODE = "014";
     public static final BigDecimal DEFAULT_TRANSFER_LIMIT = new BigDecimal("5000.00");
+    public static final String INVALID_REFRESH_TOKEN_CODE = "015";
+    public static final String INVALID_REFRESH_TOKEN = "Invalid refresh token!";
 
     private AccountUtils()
     {

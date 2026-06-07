@@ -4,7 +4,6 @@ package com.alikhdr.bankingApp.dto;
 import com.alikhdr.bankingApp.entity.GenderOptions;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -19,7 +18,6 @@ import java.time.LocalDate;
  * </p>
  */
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 // (Request): for Create

@@ -10,13 +10,12 @@ import com.alikhdr.bankingApp.service.EmailService;
 import com.alikhdr.bankingApp.service.TransactionService;
 import com.alikhdr.bankingApp.specs.CustomerSpecs;
 import com.alikhdr.bankingApp.utils.AccountUtils;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -33,8 +32,8 @@ public class CustomerImpl implements CustomerService
     private final EmailService emailService;
     private final TransactionService transactionService;
 
-    @Value("${spring.application.bankName}")
-    private String bankName;
+    //    @Value("${spring.application.bankName}")
+    //    private String bankName;
 
     @Override
     public CustomerResponse openInitialAccount(CustomerRequest customerRequest)
@@ -100,7 +99,6 @@ public class CustomerImpl implements CustomerService
         Customer foundCustomer = customerRepository.findByAccountNumber(enquiryRequest.getAccountNumber())
                 .orElseThrow(() -> new RuntimeException("Customer with account " +
                         enquiryRequest.getAccountNumber() + " not found"));
-        ;
 
         return GlobalResponse.<CustomerResponse>builder()
                 .responseCode(AccountUtils.CUSTOMER_FOUND_CODE)
@@ -138,7 +136,6 @@ public class CustomerImpl implements CustomerService
         Customer customerToCredit = customerRepository.findByAccountNumber(request.getAccountNumber())
                 .orElseThrow(() -> new RuntimeException("Customer with account " +
                         request.getAccountNumber() + " not found"));
-        ;
 
         if (customerToCredit == null)
         {
@@ -211,8 +208,8 @@ public class CustomerImpl implements CustomerService
     public GlobalResponse<CustomerResponse> transferAmount(TransferRequest transferRequest)
     {
         // Access the data inside the GlobalResponse wrapper
-        GlobalResponse<TransactionResponse> txGlobalResponse = transactionService.transfer(transferRequest);
-        TransactionResponse txResponse = txGlobalResponse.data();
+        //        GlobalResponse<TransactionResponse> txGlobalResponse = transactionService.transfer(transferRequest);
+        //        TransactionResponse txResponse = txGlobalResponse.data();
 
         Customer fromCustomer = customerRepository.findByAccountNumber(transferRequest.getSourceAccountNumber())
                 .orElseThrow(() -> new RuntimeException("Customer with account " +

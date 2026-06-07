@@ -1,6 +1,9 @@
 package com.alikhdr.bankingApp.controller;
 
-import com.alikhdr.bankingApp.dto.*;
+import com.alikhdr.bankingApp.dto.AuthLoginRequest;
+import com.alikhdr.bankingApp.dto.AuthRegisterRequest;
+import com.alikhdr.bankingApp.dto.AuthResponse;
+import com.alikhdr.bankingApp.dto.TokenRefreshRequest;
 import com.alikhdr.bankingApp.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,26 +15,27 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/auth")
 public class AuthController
 {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<GlobalResponse<AuthResponse>> register(@Valid @RequestBody AuthRegisterRequest request)
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody AuthRegisterRequest request)
     {
-        return new ResponseEntity<>(authService.register(request), HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(authService.register(request));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<GlobalResponse<AuthResponse>> login(@Valid @RequestBody AuthLoginRequest request)
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthLoginRequest request)
     {
         return ResponseEntity.ok(authService.login(request));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<GlobalResponse<AuthResponse>> refresh(@Valid @RequestBody TokenRefreshRequest request)
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody TokenRefreshRequest request)
     {
         return ResponseEntity.ok(authService.refreshToken(request));
     }

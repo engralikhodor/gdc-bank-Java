@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,7 +15,6 @@ import lombok.NoArgsConstructor;
  * </p>
  */
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class AuthRegisterRequest
@@ -29,6 +27,10 @@ public class AuthRegisterRequest
     @Size(min = 7, message = "Password should be more than 6 characters.")
     private String password;
 
+    // Role is now enforced by the service layer for new registrations,
+    // so it's not strictly needed in the request DTO for validation purposes,
+    // but kept here if it's used for other internal logic or specific admin registrations.
+    // If it's always set to USER in the service, this field could be removed from the DTO.
     @NotNull(message = "Role is required.")
     private RoleOptions role;
 

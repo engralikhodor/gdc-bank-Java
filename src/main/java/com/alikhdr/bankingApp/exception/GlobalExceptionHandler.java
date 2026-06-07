@@ -150,6 +150,17 @@ public class GlobalExceptionHandler
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
+    // Invalid refresh token
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<GlobalResponse<?>> handleInvalidRefreshToken(InvalidRefreshTokenException ex)
+    {
+        GlobalResponse<?> response = GlobalResponse.<AuthResponse>builder()
+                .responseCode(AccountUtils.INVALID_REFRESH_TOKEN_CODE)
+                .responseMessage(AccountUtils.INVALID_REFRESH_TOKEN)
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
     // GENERIC
     @ExceptionHandler(Exception.class)
     public ResponseEntity<GlobalResponse<?>> handleGenericException(Exception ex)
