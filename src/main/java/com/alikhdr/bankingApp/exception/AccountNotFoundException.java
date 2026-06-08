@@ -1,11 +1,11 @@
 package com.alikhdr.bankingApp.exception;
 
-import com.alikhdr.bankingApp.utils.AccountUtils;
+import com.alikhdr.bankingApp.constants.ResponseConstants; // Import ResponseConstants
 
 public class AccountNotFoundException extends RuntimeException
 {
     public AccountNotFoundException()
     {
-        super(AccountUtils.CUSTOMER_NOT_FOUND);
+        super(ResponseConstants.CUSTOMER_NOT_FOUND); // Changed
     }
 }

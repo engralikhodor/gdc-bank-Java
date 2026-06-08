@@ -1,9 +1,9 @@
 package com.alikhdr.bankingApp.exception;
 
+import com.alikhdr.bankingApp.constants.ResponseConstants; // Import ResponseConstants
 import com.alikhdr.bankingApp.dto.AuthResponse;
 import com.alikhdr.bankingApp.dto.CustomerResponse;
 import com.alikhdr.bankingApp.dto.GlobalResponse;
-import com.alikhdr.bankingApp.utils.AccountUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -23,7 +23,7 @@ public class GlobalExceptionHandler
     {
         return new ResponseEntity<>(
                 GlobalResponse.builder()
-                        .responseCode("409")
+                        .responseCode("409") // Consider using a specific code from ResponseConstants if available
                         .responseMessage(ex.getMessage())
                         .build(),
                 HttpStatus.CONFLICT
@@ -101,8 +101,8 @@ public class GlobalExceptionHandler
     public ResponseEntity<GlobalResponse<?>> handleAccountNotFound(AccountNotFoundException ex)
     {
         GlobalResponse<?> response = GlobalResponse.builder()
-                .responseCode(AccountUtils.CUSTOMER_NOT_FOUND_CODE)
-                .responseMessage(AccountUtils.CUSTOMER_NOT_FOUND)
+                .responseCode(ResponseConstants.CUSTOMER_NOT_FOUND_CODE) // Changed
+                .responseMessage(ResponseConstants.CUSTOMER_NOT_FOUND) // Changed
                 .build();
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
@@ -112,8 +112,8 @@ public class GlobalExceptionHandler
     public ResponseEntity<GlobalResponse<?>> handleSameAccountTransfer(SameAccountTransferException ex)
     {
         GlobalResponse<?> response = GlobalResponse.builder()
-                .responseCode(AccountUtils.SAME_ACCOUNT_TRANSFER_CODE)
-                .responseMessage(AccountUtils.SAME_ACCOUNT_TRANSFER)
+                .responseCode(ResponseConstants.SAME_ACCOUNT_TRANSFER_CODE) // Changed
+                .responseMessage(ResponseConstants.SAME_ACCOUNT_TRANSFER) // Changed
                 .build();
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
@@ -123,8 +123,8 @@ public class GlobalExceptionHandler
     public ResponseEntity<GlobalResponse<?>> handleExceedsTransferLimit(ExceedsTransferLimitException ex)
     {
         GlobalResponse<?> response = GlobalResponse.<CustomerResponse>builder()
-                .responseCode(AccountUtils.EXCEEDS_TRANSFER_LIMIT_CODE)
-                .responseMessage(AccountUtils.EXCEEDS_TRANSFER_LIMIT)
+                .responseCode(ResponseConstants.EXCEEDS_TRANSFER_LIMIT_CODE) // Changed
+                .responseMessage(ResponseConstants.EXCEEDS_TRANSFER_LIMIT) // Changed
                 .build();
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
@@ -133,8 +133,8 @@ public class GlobalExceptionHandler
     public ResponseEntity<GlobalResponse<?>> handleInsufficientResources(InsufficientResourcesException ex)
     {
         GlobalResponse<?> response = GlobalResponse.<CustomerResponse>builder()
-                .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
-                .responseMessage(AccountUtils.INSUFFICIENT_BALANCE)
+                .responseCode(ResponseConstants.INSUFFICIENT_BALANCE_CODE) // Changed
+                .responseMessage(ResponseConstants.INSUFFICIENT_BALANCE) // Changed
                 .build();
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
@@ -144,8 +144,8 @@ public class GlobalExceptionHandler
     public ResponseEntity<GlobalResponse<?>> handleUsernameAlreadyUsed(UsernameAlreadyUsedException ex)
     {
         GlobalResponse<?> response = GlobalResponse.<AuthResponse>builder()
-                .responseCode(AccountUtils.USERNAME_ALREADY_TAKEN_CODE)
-                .responseMessage(AccountUtils.USERNAME_ALREADY_TAKEN)
+                .responseCode(ResponseConstants.USERNAME_ALREADY_TAKEN_CODE) // Changed
+                .responseMessage(ResponseConstants.USERNAME_ALREADY_TAKEN) // Changed
                 .build();
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
@@ -155,8 +155,8 @@ public class GlobalExceptionHandler
     public ResponseEntity<GlobalResponse<?>> handleInvalidRefreshToken(InvalidRefreshTokenException ex)
     {
         GlobalResponse<?> response = GlobalResponse.<AuthResponse>builder()
-                .responseCode(AccountUtils.INVALID_REFRESH_TOKEN_CODE)
-                .responseMessage(AccountUtils.INVALID_REFRESH_TOKEN)
+                .responseCode(ResponseConstants.INVALID_REFRESH_TOKEN_CODE) // Changed
+                .responseMessage(ResponseConstants.INVALID_REFRESH_TOKEN) // Changed
                 .build();
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }

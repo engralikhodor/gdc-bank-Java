@@ -1,5 +1,6 @@
 package com.alikhdr.bankingApp.service.impl;
 
+import com.alikhdr.bankingApp.constants.ResponseConstants; // Import ResponseConstants
 import com.alikhdr.bankingApp.dto.*;
 import com.alikhdr.bankingApp.entity.Customer;
 import com.alikhdr.bankingApp.entity.Transaction;
@@ -116,8 +117,8 @@ public class TransactionImpl implements TransactionService
                 .build();
 
         return GlobalResponse.<TransactionResponse>builder()
-                .responseCode(AccountUtils.TRANSFER_SUCCESSFUL_CODE)
-                .responseMessage(AccountUtils.TRANSFER_SUCCESSFUL_MESSAGE)
+                .responseCode(ResponseConstants.TRANSFER_SUCCESSFUL_CODE) // Changed
+                .responseMessage(ResponseConstants.TRANSFER_SUCCESSFUL_MESSAGE) // Changed
                 .data(data)
                 .build();
     }

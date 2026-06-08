@@ -1,11 +1,11 @@
 package com.alikhdr.bankingApp.exception;
 
-import com.alikhdr.bankingApp.utils.AccountUtils;
+import com.alikhdr.bankingApp.constants.ResponseConstants; // Import ResponseConstants
 
 public class GovernmentIdExistsException extends RuntimeException
 {
     public GovernmentIdExistsException()
     {
-        super(AccountUtils.CUSTOMER_GOVERNMENT_ID_ALREADY_EXISTS);
+        super(ResponseConstants.CUSTOMER_GOVERNMENT_ID_ALREADY_EXISTS); // Changed
     }
 }

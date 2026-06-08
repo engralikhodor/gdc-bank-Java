@@ -1,5 +1,6 @@
 package com.alikhdr.bankingApp.service.impl;
 
+import com.alikhdr.bankingApp.constants.ResponseConstants; // Import ResponseConstants
 import com.alikhdr.bankingApp.dto.*;
 import com.alikhdr.bankingApp.entity.*;
 import com.alikhdr.bankingApp.exception.*;
@@ -101,8 +102,8 @@ public class CustomerImpl implements CustomerService
                         enquiryRequest.getAccountNumber() + " not found"));
 
         return GlobalResponse.<CustomerResponse>builder()
-                .responseCode(AccountUtils.CUSTOMER_FOUND_CODE)
-                .responseMessage(AccountUtils.CUSTOMER_FOUND)
+                .responseCode(ResponseConstants.CUSTOMER_FOUND_CODE) // Changed
+                .responseMessage(ResponseConstants.CUSTOMER_FOUND) // Changed
                 .data(customerMapper.entityToResponse(foundCustomer))
                 .build();
     }
@@ -123,8 +124,8 @@ public class CustomerImpl implements CustomerService
 
 
         return GlobalResponse.<String>builder()
-                .responseCode(AccountUtils.CUSTOMER_FOUND_CODE)
-                .responseMessage(AccountUtils.CUSTOMER_FOUND)
+                .responseCode(ResponseConstants.CUSTOMER_FOUND_CODE) // Changed
+                .responseMessage(ResponseConstants.CUSTOMER_FOUND) // Changed
                 .data(foundCustomer.getFirstName() + " " + foundCustomer.getLastName() + " " + foundCustomer.getOtherName())
                 .build();
     }
@@ -144,7 +145,7 @@ public class CustomerImpl implements CustomerService
 
         BigDecimal amount = request.getAmount();
 
-        if (amount.compareTo(AccountUtils.DEFAULT_TRANSFER_LIMIT) > 0)
+        if (amount.compareTo(ResponseConstants.DEFAULT_TRANSFER_LIMIT) > 0) // Changed
         {
             throw new ExceedsTransferLimitException();
         }
@@ -161,8 +162,8 @@ public class CustomerImpl implements CustomerService
                 .build());
 
         return GlobalResponse.<CustomerResponse>builder()
-                .responseCode(AccountUtils.CUSTOMER_CREDITED_SUCCESSFULLY_CODE)
-                .responseMessage(AccountUtils.CUSTOMER_CREDITED_SUCCESSFULLY)
+                .responseCode(ResponseConstants.CUSTOMER_CREDITED_SUCCESSFULLY_CODE) // Changed
+                .responseMessage(ResponseConstants.CUSTOMER_CREDITED_SUCCESSFULLY) // Changed
                 .data(customerMapper.entityToResponse(customerToCredit))
                 .build();
     }
@@ -198,8 +199,8 @@ public class CustomerImpl implements CustomerService
                 .build());
 
         return GlobalResponse.<CustomerResponse>builder()
-                .responseCode(AccountUtils.CUSTOMER_DEBITED_SUCCESSFULLY_CODE)
-                .responseMessage(AccountUtils.CUSTOMER_DEBITED_SUCCESSFULLY)
+                .responseCode(ResponseConstants.CUSTOMER_DEBITED_SUCCESSFULLY_CODE) // Changed
+                .responseMessage(ResponseConstants.CUSTOMER_DEBITED_SUCCESSFULLY) // Changed
                 .data(customerMapper.entityToResponse(customerToDebit))
                 .build();
     }
@@ -216,8 +217,8 @@ public class CustomerImpl implements CustomerService
                         transferRequest.getSourceAccountNumber() + " not found"));
 
         return GlobalResponse.<CustomerResponse>builder()
-                .responseCode(AccountUtils.TRANSFER_SUCCESSFUL_CODE)
-                .responseMessage(AccountUtils.TRANSFER_SUCCESSFUL_MESSAGE)
+                .responseCode(ResponseConstants.TRANSFER_SUCCESSFUL_CODE) // Changed
+                .responseMessage(ResponseConstants.TRANSFER_SUCCESSFUL_MESSAGE) // Changed
                 .data(customerMapper.entityToResponse(fromCustomer))
                 .build();
     }

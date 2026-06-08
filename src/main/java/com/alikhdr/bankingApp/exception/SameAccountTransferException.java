@@ -1,11 +1,11 @@
 package com.alikhdr.bankingApp.exception;
 
-import com.alikhdr.bankingApp.utils.AccountUtils;
+import com.alikhdr.bankingApp.constants.ResponseConstants; // Import ResponseConstants
 
 public class SameAccountTransferException extends RuntimeException
 {
     public SameAccountTransferException()
     {
-        super(AccountUtils.SAME_ACCOUNT_TRANSFER);
+        super(ResponseConstants.SAME_ACCOUNT_TRANSFER); // Changed
     }
 }

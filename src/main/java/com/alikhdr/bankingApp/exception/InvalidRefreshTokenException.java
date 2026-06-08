@@ -1,11 +1,11 @@
 package com.alikhdr.bankingApp.exception;
 
-import com.alikhdr.bankingApp.utils.AccountUtils;
+import com.alikhdr.bankingApp.constants.ResponseConstants; // Import ResponseConstants
 
 public class InvalidRefreshTokenException extends RuntimeException
 {
     public InvalidRefreshTokenException()
     {
-        super(AccountUtils.INVALID_REFRESH_TOKEN);
+        super(ResponseConstants.INVALID_REFRESH_TOKEN); // Changed
     }
 }

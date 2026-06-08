@@ -1,11 +1,11 @@
 package com.alikhdr.bankingApp.exception;
 
-import com.alikhdr.bankingApp.utils.AccountUtils;
+import com.alikhdr.bankingApp.constants.ResponseConstants; // Import ResponseConstants
 
 public class UsernameAlreadyUsedException extends RuntimeException
 {
     public UsernameAlreadyUsedException()
     {
-        super(AccountUtils.USERNAME_ALREADY_TAKEN);
+        super(ResponseConstants.USERNAME_ALREADY_TAKEN); // Changed
     }
 }

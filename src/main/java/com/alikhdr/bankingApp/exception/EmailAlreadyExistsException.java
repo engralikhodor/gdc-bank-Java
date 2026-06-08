@@ -1,11 +1,11 @@
 package com.alikhdr.bankingApp.exception;
 
-import com.alikhdr.bankingApp.utils.AccountUtils;
+import com.alikhdr.bankingApp.constants.ResponseConstants; // Import ResponseConstants
 
 public class EmailAlreadyExistsException extends RuntimeException
 {
     public EmailAlreadyExistsException()
     {
-        super(AccountUtils.CUSTOMER_EMAIL_ALREADY_EXISTS);
+        super(ResponseConstants.CUSTOMER_EMAIL_ALREADY_EXISTS); // Changed
     }
 }
