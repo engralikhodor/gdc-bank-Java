@@ -3,6 +3,7 @@ package com.alikhdr.bankingApp.controller;
 import com.alikhdr.bankingApp.dto.AuthLoginRequest;
 import com.alikhdr.bankingApp.dto.AuthRegisterRequest;
 import com.alikhdr.bankingApp.dto.AuthResponse;
+import com.alikhdr.bankingApp.dto.GlobalResponse; // Import GlobalResponse
 import com.alikhdr.bankingApp.dto.TokenRefreshRequest;
 import com.alikhdr.bankingApp.service.AuthService;
 import jakarta.validation.Valid;
@@ -22,20 +23,20 @@ public class AuthController
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody AuthRegisterRequest request)
+    public ResponseEntity<GlobalResponse<AuthResponse>> register(@Valid @RequestBody AuthRegisterRequest request)
     {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(authService.register(request));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthLoginRequest request)
+    public ResponseEntity<GlobalResponse<AuthResponse>> login(@Valid @RequestBody AuthLoginRequest request)
     {
         return ResponseEntity.ok(authService.login(request));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody TokenRefreshRequest request)
+    public ResponseEntity<GlobalResponse<AuthResponse>> refresh(@Valid @RequestBody TokenRefreshRequest request)
     {
         return ResponseEntity.ok(authService.refreshToken(request));
     }

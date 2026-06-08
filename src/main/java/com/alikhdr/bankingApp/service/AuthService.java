@@ -4,9 +4,9 @@ import com.alikhdr.bankingApp.dto.*;
 
 public interface AuthService
 {
-    AuthResponse register(AuthRegisterRequest authRegisterRequest);
+    GlobalResponse<AuthResponse> register(AuthRegisterRequest authRegisterRequest);
 
-    AuthResponse login(AuthLoginRequest authLoginRequest);
+    GlobalResponse<AuthResponse> login(AuthLoginRequest authLoginRequest);
 
-    AuthResponse refreshToken(TokenRefreshRequest request);
+    GlobalResponse<AuthResponse> refreshToken(TokenRefreshRequest request);
 }

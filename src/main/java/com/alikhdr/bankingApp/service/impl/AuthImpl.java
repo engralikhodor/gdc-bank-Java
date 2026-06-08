@@ -1,13 +1,8 @@
 package com.alikhdr.bankingApp.service.impl;
 
-import com.alikhdr.bankingApp.dto.AuthLoginRequest;
-import com.alikhdr.bankingApp.dto.AuthRegisterRequest;
-import com.alikhdr.bankingApp.dto.AuthResponse;
-import com.alikhdr.bankingApp.dto.TokenRefreshRequest;
+import com.alikhdr.bankingApp.dto.*;
 import com.alikhdr.bankingApp.entity.*;
-import com.alikhdr.bankingApp.exception.AccountNotFoundException;
-import com.alikhdr.bankingApp.exception.InvalidRefreshTokenException;
-import com.alikhdr.bankingApp.exception.UsernameAlreadyUsedException;
+import com.alikhdr.bankingApp.exception.*; // Import all exceptions
 import com.alikhdr.bankingApp.mapper.AuthMapper;
 import com.alikhdr.bankingApp.mapper.CustomerMapper;
 import com.alikhdr.bankingApp.repository.AuthRepository;
@@ -46,13 +41,35 @@ public class AuthImpl implements AuthService
 
     @Override
     @Transactional
-    public AuthResponse register(AuthRegisterRequest request)
+    public GlobalResponse<AuthResponse> register(AuthRegisterRequest request)
     {
         if (authRepository.existsByUsername(request.getUsername()))
         {
             log.warn("Registration attempt with existing username: {}", request.getUsername());
             throw new UsernameAlreadyUsedException();
         }
+
+        // --- Add checks for unique customer fields BEFORE saving ---
+        if (customerRepository.existsByEmail(request.getCustomerRequest().getEmail())) {
+            log.warn("Registration attempt with existing email: {}", request.getCustomerRequest().getEmail());
+            throw new EmailAlreadyExistsException();
+        }
+        if (customerRepository.existsByPhoneNumber(request.getCustomerRequest().getPhoneNumber())) {
+            log.warn("Registration attempt with existing phone number: {}", request.getCustomerRequest().getPhoneNumber());
+            throw new PhoneNumberAlreadyExistsException();
+        }
+        if (request.getCustomerRequest().getAlternativePhoneNumber() != null &&
+            !request.getCustomerRequest().getAlternativePhoneNumber().isEmpty() &&
+            customerRepository.existsByAlternativePhoneNumber(request.getCustomerRequest().getAlternativePhoneNumber())) {
+            log.warn("Registration attempt with existing alternative phone number: {}", request.getCustomerRequest().getAlternativePhoneNumber());
+            throw new AlternativePhoneNumberExistsException();
+        }
+        if (customerRepository.existsByGovernmentId(request.getCustomerRequest().getGovernmentId())) {
+            log.warn("Registration attempt with existing government ID: {}", request.getCustomerRequest().getGovernmentId());
+            throw new GovernmentIdExistsException();
+        }
+        // --- End of unique customer field checks ---
+
 
         Customer customer = customerMapper.requestToEntity(request.getCustomerRequest());
 
@@ -61,7 +78,7 @@ public class AuthImpl implements AuthService
         customer.setAccountBalance(BigDecimal.ZERO);
         customer.setStatus(AccountStatusOptions.ACTIVE);
 
-        customer.setDailyTransferLimit(new BigDecimal("500.00"));
+        customer.setDailyTransferLimit(new BigDecimal("500.00")); // Consider using ResponseConstants.DEFAULT_TRANSFER_LIMIT
         customer.setBaseCurrency(CurrencyOptions.USD);
 
         // map auth
@@ -80,15 +97,21 @@ public class AuthImpl implements AuthService
         log.info("User registered successfully: username={}, firstName={}, accountNumber={}",
                 auth.getUsername(), customer.getFirstName(), customer.getAccountNumber());
 
-        return AuthResponse.builder()
+        AuthResponse authResponse = AuthResponse.builder()
                 .username(auth.getUsername())
                 .accountNumber(customer.getAccountNumber())
                 .firstName(customer.getFirstName())
                 .build();
+
+        return GlobalResponse.<AuthResponse>builder()
+                .responseCode("201")
+                .responseMessage("User registered successfully")
+                .data(authResponse)
+                .build();
     }
 
     @Override
-    public AuthResponse login(AuthLoginRequest authLoginRequest)
+    public GlobalResponse<AuthResponse> login(AuthLoginRequest authLoginRequest)
     {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -109,16 +132,22 @@ public class AuthImpl implements AuthService
 
         log.info("User logged in successfully: username={}", user.getUsername());
 
-        return AuthResponse.builder()
+        AuthResponse authResponse = AuthResponse.builder()
                 .username(user.getUsername())
                 .firstName(customer.getFirstName())
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken.getToken())//24 hrs
                 .build();
+
+        return GlobalResponse.<AuthResponse>builder()
+                .responseCode("200")
+                .responseMessage("Login Successful")
+                .data(authResponse)
+                .build();
     }
 
     @Override
-    public AuthResponse refreshToken(TokenRefreshRequest request)
+    public GlobalResponse<AuthResponse> refreshToken(TokenRefreshRequest request)
     {
         RefreshToken tokenInDb = refreshTokenRepository.findByToken(request.refreshToken())
                 .orElseThrow(InvalidRefreshTokenException::new);
@@ -162,6 +191,10 @@ public class AuthImpl implements AuthService
                 .orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
 */
         log.info("Token refreshed successfully for username: {}", auth.getUsername());
-        return authResponse;
+        return GlobalResponse.<AuthResponse>builder()
+                .responseCode("200")
+                .responseMessage("Token refreshed successfully")
+                .data(authResponse)
+                .build();
     }
 }

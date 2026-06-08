@@ -1,6 +1,6 @@
 package com.alikhdr.bankingApp.exception;
 
-import com.alikhdr.bankingApp.constants.ResponseConstants; // Import ResponseConstants
+import com.alikhdr.bankingApp.constants.ResponseConstants;
 import com.alikhdr.bankingApp.dto.AuthResponse;
 import com.alikhdr.bankingApp.dto.CustomerResponse;
 import com.alikhdr.bankingApp.dto.GlobalResponse;
@@ -23,7 +23,7 @@ public class GlobalExceptionHandler
     {
         return new ResponseEntity<>(
                 GlobalResponse.builder()
-                        .responseCode("409") // Consider using a specific code from ResponseConstants if available
+                        .responseCode(ResponseConstants.DUPLICATE_ENTRY_CODE) // Changed to custom code
                         .responseMessage(ex.getMessage())
                         .build(),
                 HttpStatus.CONFLICT
@@ -36,7 +36,7 @@ public class GlobalExceptionHandler
     {
         return new ResponseEntity<>(
                 GlobalResponse.builder()
-                        .responseCode("409")
+                        .responseCode(ResponseConstants.DUPLICATE_ENTRY_CODE) // Changed to custom code
                         .responseMessage(ex.getMessage())
                         .build(),
                 HttpStatus.CONFLICT
@@ -49,7 +49,7 @@ public class GlobalExceptionHandler
     {
         return new ResponseEntity<>(
                 GlobalResponse.builder()
-                        .responseCode("409")
+                        .responseCode(ResponseConstants.DUPLICATE_ENTRY_CODE) // Changed to custom code
                         .responseMessage(ex.getMessage())
                         .build(),
                 HttpStatus.CONFLICT
@@ -62,7 +62,7 @@ public class GlobalExceptionHandler
     {
         return new ResponseEntity<>(
                 GlobalResponse.builder()
-                        .responseCode("409")
+                        .responseCode(ResponseConstants.DUPLICATE_ENTRY_CODE) // Changed to custom code
                         .responseMessage(ex.getMessage())
                         .build(),
                 HttpStatus.CONFLICT
@@ -79,7 +79,7 @@ public class GlobalExceptionHandler
                 .collect(Collectors.joining(", "));
 
         GlobalResponse<?> response = GlobalResponse.builder()
-                .responseCode(HttpStatus.BAD_REQUEST.toString())
+                .responseCode(ResponseConstants.VALIDATION_ERROR_CODE) // Changed to custom code
                 .responseMessage(errorMessage)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -90,41 +90,41 @@ public class GlobalExceptionHandler
     public ResponseEntity<GlobalResponse<?>> handleOptimisticLockingFailure(ObjectOptimisticLockingFailureException ex)
     {
         GlobalResponse<?> response = GlobalResponse.builder()
-                .responseCode(HttpStatus.CONFLICT.toString())
+                .responseCode(ResponseConstants.OPTIMISTIC_LOCK_FAILURE_CODE) // Changed to custom code
                 .responseMessage("This record was updated by another process. Please refresh and try again.")
                 .build();
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
-    // account not found
+    // account not found (already uses custom code)
     @ExceptionHandler(AccountNotFoundException.class)
     public ResponseEntity<GlobalResponse<?>> handleAccountNotFound(AccountNotFoundException ex)
     {
         GlobalResponse<?> response = GlobalResponse.builder()
-                .responseCode(ResponseConstants.CUSTOMER_NOT_FOUND_CODE) // Changed
-                .responseMessage(ResponseConstants.CUSTOMER_NOT_FOUND) // Changed
+                .responseCode(ResponseConstants.CUSTOMER_NOT_FOUND_CODE)
+                .responseMessage(ResponseConstants.CUSTOMER_NOT_FOUND)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
-    // sending from-to same account
+    // sending from-to same account (already uses custom code)
     @ExceptionHandler(SameAccountTransferException.class)
     public ResponseEntity<GlobalResponse<?>> handleSameAccountTransfer(SameAccountTransferException ex)
     {
         GlobalResponse<?> response = GlobalResponse.builder()
-                .responseCode(ResponseConstants.SAME_ACCOUNT_TRANSFER_CODE) // Changed
-                .responseMessage(ResponseConstants.SAME_ACCOUNT_TRANSFER) // Changed
+                .responseCode(ResponseConstants.SAME_ACCOUNT_TRANSFER_CODE)
+                .responseMessage(ResponseConstants.SAME_ACCOUNT_TRANSFER)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
-    // amount exceeds limit
+    // amount exceeds limit (already uses custom code)
     @ExceptionHandler(ExceedsTransferLimitException.class)
     public ResponseEntity<GlobalResponse<?>> handleExceedsTransferLimit(ExceedsTransferLimitException ex)
     {
         GlobalResponse<?> response = GlobalResponse.<CustomerResponse>builder()
-                .responseCode(ResponseConstants.EXCEEDS_TRANSFER_LIMIT_CODE) // Changed
-                .responseMessage(ResponseConstants.EXCEEDS_TRANSFER_LIMIT) // Changed
+                .responseCode(ResponseConstants.EXCEEDS_TRANSFER_LIMIT_CODE)
+                .responseMessage(ResponseConstants.EXCEEDS_TRANSFER_LIMIT)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
@@ -133,30 +133,30 @@ public class GlobalExceptionHandler
     public ResponseEntity<GlobalResponse<?>> handleInsufficientResources(InsufficientResourcesException ex)
     {
         GlobalResponse<?> response = GlobalResponse.<CustomerResponse>builder()
-                .responseCode(ResponseConstants.INSUFFICIENT_BALANCE_CODE) // Changed
-                .responseMessage(ResponseConstants.INSUFFICIENT_BALANCE) // Changed
+                .responseCode(ResponseConstants.INSUFFICIENT_BALANCE_CODE)
+                .responseMessage(ResponseConstants.INSUFFICIENT_BALANCE)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
-    // username already taken
+    // username already taken (already uses custom code)
     @ExceptionHandler(UsernameAlreadyUsedException.class)
     public ResponseEntity<GlobalResponse<?>> handleUsernameAlreadyUsed(UsernameAlreadyUsedException ex)
     {
         GlobalResponse<?> response = GlobalResponse.<AuthResponse>builder()
-                .responseCode(ResponseConstants.USERNAME_ALREADY_TAKEN_CODE) // Changed
-                .responseMessage(ResponseConstants.USERNAME_ALREADY_TAKEN) // Changed
+                .responseCode(ResponseConstants.USERNAME_ALREADY_TAKEN_CODE)
+                .responseMessage(ResponseConstants.USERNAME_ALREADY_TAKEN)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
-    // Invalid refresh token
+    // Invalid refresh token (already uses custom code)
     @ExceptionHandler(InvalidRefreshTokenException.class)
     public ResponseEntity<GlobalResponse<?>> handleInvalidRefreshToken(InvalidRefreshTokenException ex)
     {
         GlobalResponse<?> response = GlobalResponse.<AuthResponse>builder()
-                .responseCode(ResponseConstants.INVALID_REFRESH_TOKEN_CODE) // Changed
-                .responseMessage(ResponseConstants.INVALID_REFRESH_TOKEN) // Changed
+                .responseCode(ResponseConstants.INVALID_REFRESH_TOKEN_CODE)
+                .responseMessage(ResponseConstants.INVALID_REFRESH_TOKEN)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
@@ -166,9 +166,9 @@ public class GlobalExceptionHandler
     public ResponseEntity<GlobalResponse<?>> handleGenericException(Exception ex)
     {
         GlobalResponse<?> response = GlobalResponse.builder()
-                .responseCode("500")
-                .responseMessage("Internal server error")
+                .responseCode(ResponseConstants.GENERIC_ERROR_CODE) // Changed to custom code
+                .responseMessage(ResponseConstants.INTERNAL_SERVER_ERROR_MESSAGE) // Changed to custom message
                 .build();
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR); // Changed HTTP status to 500
     }
 }

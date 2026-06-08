@@ -22,10 +22,11 @@ AI-powered transaction insights.
 
 ### Authentication & Users
 
-- User registration (with enforced default role for security)
+- User registration (with enforced default role for security and robust uniqueness checks)
 - User login endpoint
 - Password encryption (BCrypt)
 - Robust Spring Security configuration (including JWT and Refresh Token flow)
+- Enhanced `RoleOptions` enum for direct Spring Security integration and clarity.
 
 ---
 
@@ -58,10 +59,8 @@ AI-powered transaction insights.
 ### Financial Instruments & Market Data
 
 - **Real-time Market Data Integration:** Fetches live stock quotes from the Finnhub API using WebClient.
-- **Option Entity:** Models financial option contracts with properties like underlying symbol, strike price, type (
-  CALL/PUT), and expiration date.
-- **Option Pricing Service:** Implements a simplified Black-Scholes model to calculate the theoretical price of European
-  options, leveraging real-time market data.
+- **Option Entity:** Models financial option contracts with properties like underlying symbol, strike price, type (CALL/PUT), and expiration date.
+- **Option Pricing Service:** Implements a simplified Black-Scholes model to calculate the theoretical price of European options, leveraging real-time market data.
 - **Option Management:** REST endpoints for creating, retrieving, and pricing option entities.
 
 ---
@@ -97,9 +96,10 @@ AI-powered transaction insights.
 - Streamlined DTOs (optimized for request/response patterns, reduced boilerplate)
 - Bean Validation
 - Transactional service boundaries (with Spring-managed transactions)
-- Centralized exception handling (with specific custom exceptions)
-- Aspect-Oriented Programming (AOP) for cross-cutting concerns (e.g., service method logging, controller execution time
-  monitoring)
+- Centralized exception handling (with specific custom exceptions and granular, application-specific response codes)
+- Aspect-Oriented Programming (AOP) for cross-cutting concerns (e.g., service method logging, controller execution time monitoring)
+- Refactored utility classes for adherence to Single Responsibility Principle (e.g., `AccountUtils` and `ResponseConstants`).
+- Consistent API response structure using `GlobalResponse`.
 - Initial data seeding for development/testing
 
 ---
@@ -116,6 +116,7 @@ This project focuses on:
 - Enhanced security practices for user registration
 - Improved observability through AOP-driven logging
 - Interactive API documentation via Swagger UI (pending full integration)
+- Robust and consistent API error handling.
 
 Future enhancements (security hardening, advanced observability, deployment, etc.)
 are intentionally separated from the current scope.

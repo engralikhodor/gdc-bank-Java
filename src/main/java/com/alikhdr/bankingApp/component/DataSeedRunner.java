@@ -1,5 +1,6 @@
 package com.alikhdr.bankingApp.component;
 
+import com.alikhdr.bankingApp.constants.ResponseConstants;
 import com.alikhdr.bankingApp.dto.TransactionRequest;
 import com.alikhdr.bankingApp.entity.*;
 import com.alikhdr.bankingApp.repository.CustomerRepository;
@@ -42,7 +43,7 @@ public class DataSeedRunner implements CommandLineRunner
                 .gender(GenderOptions.MALE)
                 .status(AccountStatusOptions.ACTIVE)
                 .baseCurrency(CurrencyOptions.USD)
-                .dailyTransferLimit(AccountUtils.DEFAULT_TRANSFER_LIMIT)
+                .dailyTransferLimit(ResponseConstants.DEFAULT_TRANSFER_LIMIT) // Changed
                 .dateOfBirth(LocalDate.parse("1990-01-01"))
                 .governmentId("125898888")
                 .nationality("Lebanese")
@@ -67,7 +68,7 @@ public class DataSeedRunner implements CommandLineRunner
                 .gender(GenderOptions.FEMALE)
                 .status(AccountStatusOptions.ACTIVE)
                 .baseCurrency(CurrencyOptions.USD)
-                .dailyTransferLimit(AccountUtils.DEFAULT_TRANSFER_LIMIT)
+                .dailyTransferLimit(ResponseConstants.DEFAULT_TRANSFER_LIMIT) // Changed
                 .dateOfBirth(LocalDate.parse("1980-08-08"))
                 .governmentId("888812589")
                 .nationality("Swedish")

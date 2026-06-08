@@ -1,6 +1,6 @@
 package com.alikhdr.bankingApp.service.impl;
 
-import com.alikhdr.bankingApp.constants.ResponseConstants; // Import ResponseConstants
+import com.alikhdr.bankingApp.constants.ResponseConstants;
 import com.alikhdr.bankingApp.dto.*;
 import com.alikhdr.bankingApp.entity.Customer;
 import com.alikhdr.bankingApp.entity.Transaction;
@@ -15,7 +15,6 @@ import com.alikhdr.bankingApp.repository.CustomerRepository;
 import com.alikhdr.bankingApp.repository.TransactionRepository;
 import com.alikhdr.bankingApp.service.TransactionService;
 import com.alikhdr.bankingApp.specs.TransactionSpecs;
-import com.alikhdr.bankingApp.utils.AccountUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;

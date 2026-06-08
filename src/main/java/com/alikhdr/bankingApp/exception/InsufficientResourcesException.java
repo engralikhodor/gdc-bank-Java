@@ -1,11 +1,11 @@
 package com.alikhdr.bankingApp.exception;
 
-import com.alikhdr.bankingApp.constants.ResponseConstants; // Import ResponseConstants
+import com.alikhdr.bankingApp.constants.ResponseConstants;
 
 public class InsufficientResourcesException extends RuntimeException
 {
     public InsufficientResourcesException()
     {
-        super(ResponseConstants.INSUFFICIENT_BALANCE); // Changed
+        super(ResponseConstants.INSUFFICIENT_BALANCE);
     }
 }
